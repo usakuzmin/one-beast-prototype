@@ -1,0 +1,3208 @@
+<roblox version="4">
+  <Item class="Lighting" referent="0">
+    <Properties>
+      <string name="Name">Lighting</string>
+      <Color3 name="Ambient">
+        <R>0.6</R>
+        <G>0.6</G>
+        <B>0.6</B>
+      </Color3>
+      <float name="Brightness">2.6</float>
+      <float name="ClockTime">13.5</float>
+      <float name="EnvironmentDiffuseScale">0.5</float>
+      <float name="EnvironmentSpecularScale">0.3</float>
+      <float name="GeographicLatitude">35</float>
+      <bool name="GlobalShadows">true</bool>
+      <Color3 name="OutdoorAmbient">
+        <R>0.66</R>
+        <G>0.66</G>
+        <B>0.62</B>
+      </Color3>
+    </Properties>
+    <Item class="Atmosphere" referent="1">
+      <Properties>
+        <string name="Name">Atmosphere</string>
+        <Color3 name="Color">
+          <R>0.62</R>
+          <G>0.82</G>
+          <B>0.95</B>
+        </Color3>
+        <Color3 name="Decay">
+          <R>0.55</R>
+          <G>0.75</G>
+          <B>0.92</B>
+        </Color3>
+        <float name="Density">0.12</float>
+        <float name="Glare">0</float>
+        <float name="Haze">0</float>
+        <float name="Offset">0</float>
+      </Properties>
+    </Item>
+    <Item class="BloomEffect" referent="2">
+      <Properties>
+        <string name="Name">Bloom</string>
+        <float name="Intensity">0.3</float>
+        <float name="Size">18</float>
+        <float name="Threshold">1.8</float>
+      </Properties>
+    </Item>
+    <Item class="ColorCorrectionEffect" referent="3">
+      <Properties>
+        <string name="Name">ColorCorrection</string>
+        <float name="Brightness">0.03</float>
+        <float name="Contrast">0.08</float>
+        <float name="Saturation">0.25</float>
+        <Color3 name="TintColor">
+          <R>1</R>
+          <G>1</G>
+          <B>0.98</B>
+        </Color3>
+      </Properties>
+    </Item>
+  </Item>
+  <Item class="Players" referent="4">
+    <Properties>
+      <string name="Name">Players</string>
+      <int name="MaxPlayersInternal">6</int>
+    </Properties>
+  </Item>
+  <Item class="ReplicatedStorage" referent="5">
+    <Properties>
+      <string name="Name">ReplicatedStorage</string>
+    </Properties>
+    <Item class="Folder" referent="6">
+      <Properties>
+        <string name="Name">Shared</string>
+      </Properties>
+      <Item class="Folder" referent="7">
+        <Properties>
+          <string name="Name">Farm</string>
+        </Properties>
+        <Item class="ModuleScript" referent="8">
+          <Properties>
+            <string name="Name">Config</string>
+            <string name="Source"><![CDATA[--!strict
+-- Все числа фермы в одном месте. Перенос из farm_lab v0.3 (src/farm/config.ts) один в один:
+-- посадил 1 — собрал 2, заказы платят больше лавки, постройки открываются по уровню фермы.
+-- Координаты x, y — в пикселях веб-фермы (760×540); в мир Roblox их переводит FarmWorld.
+
+local Config = {}
+
+Config.ITEMS = {
+	wheat = { name = "пшеница", icon = "🌾", sell = 2 },
+	carrot = { name = "морковь", icon = "🥕", sell = 4 },
+	strawberry = { name = "клубника", icon = "🍓", sell = 6 },
+	pumpkin = { name = "тыква", icon = "🎃", sell = 14 },
+	flour = { name = "мука", icon = "🥡", sell = 8 },
+	egg = { name = "яйцо", icon = "🥚", sell = 7 },
+	bread = { name = "хлеб", icon = "🍞", sell = 22 },
+	soup = { name = "морковный суп", icon = "🍲", sell = 16 },
+	omelet = { name = "омлет", icon = "🍳", sell = 20 },
+	pie = { name = "ягодный пирог", icon = "🥧", sell = 30 },
+	porridge = { name = "тыквенная каша", icon = "🥣", sell = 24 },
+}
+
+Config.CROP_LIST = { "wheat", "carrot", "strawberry", "pumpkin" }
+Config.GOOD_LIST = { "flour", "egg", "bread" }
+Config.DISH_LIST = { "soup", "omelet", "pie", "porridge" }
+Config.ITEM_LIST = { "wheat", "carrot", "strawberry", "pumpkin", "flour", "egg", "bread", "soup", "omelet", "pie", "porridge" }
+
+Config.CROPS = {
+	wheat = { growMs = 60000, greenAt = 0.4, seedCost = 0, xp = 1, level = 1 },
+	carrot = { growMs = 110000, greenAt = 0.35, seedCost = 1, xp = 2, level = 1 },
+	strawberry = { growMs = 75000, greenAt = 0.4, seedCost = 4, xp = 3, level = 2 },
+	pumpkin = { growMs = 220000, greenAt = 0.3, seedCost = 8, xp = 6, level = 3 },
+}
+
+-- Массивы cost и buildMs: индекс 1 — цена первого уровня постройки.
+Config.BUILDINGS = {
+	storage = { name = "Амбар", icon = "🏚", about = "Хранит урожай и продукты: 25 → 50 → 100 мест.", maxLevel = 3, cost = { 0, 60, 160 }, buildMs = { 0, 60000, 120000 }, level = 1, x = 105, y = 80 },
+	fields = { name = "Новые грядки", icon = "🟫", about = "Ещё 3 грядки за уровень.", maxLevel = 2, cost = { 40, 100 }, buildMs = { 40000, 80000 }, level = 1, x = 0, y = 0 },
+	well = { name = "Колодец", icon = "⛲", about = "Сам поливает грядки: раз в 60 с, на 2 уровне раз в 30 с.", maxLevel = 2, cost = { 50, 120 }, buildMs = { 60000, 90000 }, level = 2, x = 105, y = 200 },
+	compost = { name = "Компостер", icon = "♻️", about = "Гнилой урожай превращается в удобрение. Предел удобрений 10 → 20.", maxLevel = 1, cost = { 35 }, buildMs = { 45000 }, level = 2, x = 105, y = 320 },
+	coop = { name = "Курятник", icon = "🐔", about = "Яйцо раз в 50 с, если в амбаре есть пшеница на корм.", maxLevel = 1, cost = { 70 }, buildMs = { 80000 }, level = 2, x = 655, y = 400 },
+	mill = { name = "Мельница", icon = "🌀", about = "3 пшеницы → 1 мука за 30 с.", maxLevel = 1, cost = { 80 }, buildMs = { 90000 }, level = 3, x = 655, y = 80 },
+	bakery = { name = "Пекарня", icon = "🥖", about = "1 мука + 1 яйцо → 2 хлеба за 40 с. Хлеб сначала остывает на противне.", maxLevel = 1, cost = { 120 }, buildMs = { 120000 }, level = 4, x = 655, y = 220 },
+	kitchen = { name = "Кухня", icon = "🍳", about = "Блюда из урожая: суп, омлет, пирог, каша.", maxLevel = 1, cost = { 90 }, buildMs = { 70000 }, level = 3, x = 105, y = 440 },
+}
+
+Config.BUILDING_LIST = { "fields", "storage", "well", "compost", "coop", "mill", "kitchen", "bakery" }
+
+-- Порядок рецептов важен для заказов (как порядок ключей RECIPES в TS).
+Config.RECIPE_ORDER = { "soup", "porridge", "omelet", "pie" }
+Config.RECIPES = {
+	soup = { name = "Морковный суп", icon = "🍲", needs = { carrot = 2 }, cookMs = 20000, level = 3 },
+	porridge = { name = "Тыквенная каша", icon = "🥣", needs = { pumpkin = 1, wheat = 1 }, cookMs = 25000, level = 3 },
+	omelet = { name = "Омлет", icon = "🍳", needs = { egg = 2 }, cookMs = 15000, level = 3 },
+	pie = { name = "Ягодный пирог", icon = "🥧", needs = { strawberry = 2, flour = 1 }, cookMs = 30000, level = 4 },
+}
+
+Config.FARM = {
+	stepMs = 250,
+	saveVersion = 1,
+	world = { width = 760, height = 540 },
+
+	startCoins = 60,
+	startXp = 0,
+	-- Сколько опыта нужно для уровня 1, 2, 3, ... (индекс = уровень).
+	levelXp = { 0, 15, 45, 100, 180, 300, 460 },
+
+	basePlots = 6,
+	plotsPerLevel = 3,
+	plotGrid = { x0 = 296, y0 = 100, step = 84, cols = 3 },
+
+	harvestYield = 2, -- посадил 1 — собрал 2
+	fertBonus = 1, -- удобренная грядка даёт +1
+	waterDecayPerSec = 1.4,
+	wetMul = 1.6,
+	dryMul = 0.5,
+	fertMul = 1.5,
+	rotAfterMs = 180000, -- зрелый урожай гниёт, если долго не собирать (только при игроке)
+	wellEveryMs = { 60000, 30000 }, -- по уровню колодца
+	fertCap = { 10, 20 }, -- без компостера / с ним
+	startFertilizer = 1,
+
+	storageCap = { 25, 50, 100 }, -- по уровню амбара
+	orderCount = 3,
+	orderBonus = 1.6,
+	orderXpPerCoin = 0.3,
+	buildXpPerCoin = 0.2,
+
+	mill = { ms = 30000, wheat = 3 },
+	bakery = { ms = 40000, bread = 2 },
+	coop = { eggEveryMs = 50000 },
+	trayCoolMs = 25000,
+
+	-- Повреждения: меньше этой доли уцелевшего урожая — грядка уничтожена.
+	destroyBelow = 0.05,
+
+	offlineMaxMs = 8 * 3600000,
+	logKeep = 300,
+}
+
+Config.CUSTOMERS = { "Трактирщик", "Мельничиха", "Старый рыбак", "Пекарь из города", "Соседка-травница", "Кузнец" }
+
+return Config
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="9">
+          <Properties>
+            <string name="Name">Contract</string>
+            <string name="Source"><![CDATA[--!strict
+-- Стык фермы с остальным миром (one_beast/claude_interface_farm_beast.md, версия стыка 2).
+-- Перенос farm_lab v0.3 (src/farm/contract.ts).
+--
+-- Наружу: объекты с метками (objects) и журнал событий (drainEvents).
+-- Внутрь: «что-то повредило / съело / унесло / помогло». Кто это сделал — зверь,
+-- гоблин или град, — ферма не знает, только подпись cause.
+
+local IS_ROBLOX = typeof(script) == "Instance"
+local Config = if IS_ROBLOX then require(script.Parent.Config) else require("./Config")
+local Farm = if IS_ROBLOX then require(script.Parent.Farm) else require("./Farm")
+
+local FARM = Config.FARM
+local ITEMS = Config.ITEMS
+local BUILDINGS = Config.BUILDINGS
+
+type FarmState = Farm.FarmState
+type Plot = Farm.Plot
+
+local Contract = {}
+
+Contract.TAG = {
+	plot = "plot",
+	food = "food",
+	unripe = "unripe",
+	ripe = "ripe",
+	rotten = "rotten",
+	seedling = "seedling",
+	dry = "dry",
+	fertilized = "fertilized",
+	damaged = "damaged",
+	storage = "storage",
+	hasFood = "has_food",
+	full = "full",
+	tray = "tray",
+	hot = "hot",
+	coop = "coop",
+	chickens = "chickens",
+	scared = "scared",
+	building = "building",
+	construction = "construction",
+}
+local TAG = Contract.TAG
+
+local function cropTag(c: string): string
+	return "crop:" .. c
+end
+local function itemTag(i: string): string
+	return "item:" .. i
+end
+Contract.cropTag = cropTag
+Contract.itemTag = itemTag
+
+export type FarmObject = {
+	id: string, -- plot3, storage, tray, coop, building:mill, construction
+	x: number,
+	y: number,
+	tags: { string },
+	value: number, -- сколько монет стоит то, что здесь можно потерять
+	label: string, -- подпись для человека: «морковь, зелёная»
+	ripeInMs: number?, -- только у растущей грядки
+}
+
+local STAGE_NAME = { empty = "пустая", seed = "росток", green = "зелёная", ripe = "спелая", rotten = "гнилая" }
+
+local function plotObject(p: Plot): FarmObject
+	local tags = { TAG.plot }
+	local crop = p.crop
+	if not crop or p.stage == "empty" then
+		return { id = p.id, x = p.x, y = p.y, tags = tags, value = 0, label = "пустая грядка" }
+	end
+	table.insert(tags, cropTag(crop))
+	if p.stage == "seed" then
+		table.insert(tags, TAG.seedling)
+	elseif p.stage == "green" then
+		table.insert(tags, TAG.food)
+		table.insert(tags, TAG.unripe)
+	elseif p.stage == "ripe" then
+		table.insert(tags, TAG.food)
+		table.insert(tags, TAG.ripe)
+	elseif p.stage == "rotten" then
+		table.insert(tags, TAG.rotten)
+	end
+	if Farm.isGrowing(p) and p.water <= 0 then
+		table.insert(tags, TAG.dry)
+	end
+	if p.fertilized then
+		table.insert(tags, TAG.fertilized)
+	end
+	if p.health < 1 then
+		table.insert(tags, TAG.damaged)
+	end
+	local value = if p.stage == "rotten" then 0 else math.round(Farm.expectedYield(p) * ITEMS[crop].sell)
+	local o: FarmObject = { id = p.id, x = p.x, y = p.y, tags = tags, value = value, label = `{ITEMS[crop].name}, {STAGE_NAME[p.stage]}` }
+	if Farm.isGrowing(p) then
+		o.ripeInMs = Farm.ripeInMs(p)
+	end
+	return o
+end
+
+function Contract.objects(f: FarmState): { FarmObject }
+	local out = {}
+	for _, p in f.plots do
+		table.insert(out, plotObject(p))
+	end
+
+	local s = BUILDINGS.storage
+	local stTags = { TAG.storage, TAG.building }
+	local has = {}
+	local value = 0
+	for _, i in Config.ITEM_LIST do
+		if f.stock[i] > 0 then
+			table.insert(has, i)
+			value += f.stock[i] * ITEMS[i].sell
+		end
+	end
+	if #has > 0 then
+		table.insert(stTags, TAG.food)
+		table.insert(stTags, TAG.hasFood)
+		for _, i in has do
+			table.insert(stTags, itemTag(i))
+		end
+	end
+	if Farm.storedCount(f) >= Farm.storageCap(f) then
+		table.insert(stTags, TAG.full)
+	end
+	table.insert(out, { id = "storage", x = s.x, y = s.y, tags = stTags, value = value, label = if #has > 0 then "амбар, есть еда" else "амбар, пусто" })
+
+	if f.tray then
+		local tx, ty = Farm.trayPos()
+		table.insert(out, { id = "tray", x = tx, y = ty, tags = { TAG.tray, TAG.food, TAG.hot, itemTag("bread") }, value = f.tray.bread * ITEMS.bread.sell, label = `противень: {f.tray.bread} 🍞, горячий` })
+	end
+
+	if f.buildings.coop > 0 then
+		local c = BUILDINGS.coop
+		local tags = { TAG.coop, TAG.building, TAG.chickens }
+		if f.tMs < f.coop.scaredUntilMs then
+			table.insert(tags, TAG.scared)
+		end
+		table.insert(out, { id = "coop", x = c.x, y = c.y, tags = tags, value = 0, label = "курятник" })
+	end
+
+	for _, b in { "well", "compost", "mill", "bakery", "kitchen" } do
+		if f.buildings[b] > 0 then
+			table.insert(out, { id = "building:" .. b, x = BUILDINGS[b].x, y = BUILDINGS[b].y, tags = { TAG.building, "building:" .. b }, value = 0, label = string.lower(BUILDINGS[b].name) })
+		end
+	end
+
+	local con = f.construction
+	if con then
+		local b = BUILDINGS[con.building]
+		local x, y = b.x, b.y
+		if con.building == "fields" then
+			local g = FARM.plotGrid
+			x, y = g.x0 + g.step, g.y0 + math.ceil(#f.plots / g.cols) * g.step
+		end
+		table.insert(out, { id = "construction", x = x, y = y, tags = { TAG.construction, "building:" .. con.building }, value = 0, label = "стройка: " .. b.name })
+	end
+	return out
+end
+
+-- ---------- Входы ----------
+
+local function growingOrRipe(p: Plot): boolean
+	return p.crop ~= nil and (p.stage == "seed" or p.stage == "green" or p.stage == "ripe")
+end
+
+-- Часть урожая на грядке пропала (растоптали, поклевали, побило градом).
+-- share — доля от полного урожая (0..1). Возвращает, сколько реально потеряно.
+function Contract.damagePlot(f: FarmState, plotId: string, share: number, cause: string): number
+	local p = Farm.plotById(f, plotId)
+	if not p or not growingOrRipe(p) or share <= 0 then
+		return 0
+	end
+	local crop = p.crop
+	local before = p.health
+	p.health = math.max(0, p.health - math.min(1, share))
+	local lost = before - p.health
+	if p.health < FARM.destroyBelow then
+		local stage = p.stage
+		f.totals.destroyed += 1
+		Farm.emit(f, { kind = "destroyed", plotId = p.id, crop = crop, stage = stage, cause = cause })
+		Farm.clearPlot(p)
+	else
+		Farm.emit(f, { kind = "damaged", plotId = p.id, crop = crop, share = lost, health = p.health, cause = cause })
+	end
+	return lost
+end
+
+-- Урожай с грядки съеден или унесён целиком. По стадии внешний мир сам решает, что значит «съел зелёное».
+function Contract.eatPlot(f: FarmState, plotId: string, cause: string): { crop: string, stage: string, n: number }?
+	local p = Farm.plotById(f, plotId)
+	if not p or not growingOrRipe(p) then
+		return nil
+	end
+	local res = { crop = p.crop :: string, stage = p.stage, n = math.max(1, Farm.randRound(f, Farm.expectedYield(p))) }
+	f.totals.destroyed += 1
+	Farm.emit(f, { kind = "destroyed", plotId = p.id, crop = res.crop, stage = res.stage, cause = cause })
+	Farm.clearPlot(p)
+	return res
+end
+
+-- «Урожай повреждён на N%»: всё, что растёт, теряет долю share.
+function Contract.damageCrops(f: FarmState, share: number, cause: string, only: ((Plot) -> boolean)?): number
+	local lost = 0
+	for _, p in table.clone(f.plots) do
+		if growingOrRipe(p) and (not only or only(p)) then
+			lost += Contract.damagePlot(f, p.id, share, cause)
+		end
+	end
+	return lost
+end
+
+local BY_VALUE = table.clone(Config.ITEM_LIST)
+table.sort(BY_VALUE, function(a, b)
+	return ITEMS[a].sell > ITEMS[b].sell
+end)
+
+-- Взять из амбара. item = "any" — самое ценное первым (так выбирает вор).
+function Contract.takeFromStorage(f: FarmState, item: string, n: number, cause: string): { [string]: number }
+	local got: { [string]: number } = {}
+	local order: { string } = {} -- в каком порядке брали (как в журнале веб-фермы)
+	for _ = 1, n do
+		local it: string? = nil
+		if item == "any" then
+			for _, x in BY_VALUE do
+				if f.stock[x] > 0 then
+					it = x
+					break
+				end
+			end
+		elseif (f.stock[item] or 0) > 0 then
+			it = item
+		end
+		if not it then
+			break
+		end
+		f.stock[it] -= 1
+		if not got[it] then
+			table.insert(order, it)
+		end
+		got[it] = (got[it] or 0) + 1
+	end
+	for _, it in order do
+		f.totals.taken += got[it]
+		Farm.emit(f, { kind = "taken", item = it, n = got[it], from = "storage", cause = cause })
+	end
+	return got
+end
+
+-- Стащить хлеб с противня, пока остывает.
+function Contract.takeFromTray(f: FarmState, n: number, cause: string): number
+	local tray = f.tray
+	if not tray then
+		return 0
+	end
+	local k = math.min(n, tray.bread)
+	tray.bread -= k
+	if tray.bread <= 0 then
+		f.tray = nil
+	end
+	if k > 0 then
+		f.totals.taken += k
+		Farm.emit(f, { kind = "taken", item = "bread", n = k, from = "tray", cause = cause })
+	end
+	return k
+end
+
+-- Навоз и другие внешние удобрения. Компостер удваивает.
+function Contract.addFertilizer(f: FarmState, n: number, source: string): number
+	local add = Farm.addFertilizerRaw(f, if f.buildings.compost > 0 then n * 2 else n)
+	if add > 0 then
+		Farm.emit(f, { kind = "fertilizer", n = add, source = source })
+	end
+	return add
+end
+
+-- Кто-то носит камни на стройку: оставшееся время меньше на ms.
+function Contract.helpConstruction(f: FarmState, ms: number, cause: string): number
+	local c = f.construction
+	if not c or ms <= 0 then
+		return 0
+	end
+	local d = math.min(ms, c.remainingMs)
+	c.remainingMs -= d
+	Farm.emit(f, { kind = "build_helped", ms = d, cause = cause })
+	if c.remainingMs <= 0 then
+		Farm.finishConstruction(f)
+	end
+	return d
+end
+
+-- Кур напугали: яиц не будет ms.
+function Contract.scareChickens(f: FarmState, ms: number, cause: string)
+	if f.buildings.coop == 0 then
+		return
+	end
+	f.coop.scaredUntilMs = math.max(f.coop.scaredUntilMs, f.tMs + ms)
+	f.coop.nextEggAtMs = math.max(f.coop.nextEggAtMs, f.coop.scaredUntilMs)
+	Farm.emit(f, { kind = "chickens_scared", ms = ms, cause = cause })
+end
+
+-- Забрать новые события. Каждое отдаётся один раз.
+function Contract.drainEvents(f: FarmState): { Farm.LoggedEvent }
+	local out = f.outbox
+	f.outbox = {}
+	return out
+end
+
+return Contract
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="10">
+          <Properties>
+            <string name="Name">Farm</string>
+            <string name="Source"><![CDATA[--!strict
+-- Ядро фермы: состояние, ход времени и команды игрока. Без зверя, без гоблинов.
+-- Перенос farm_lab v0.3 (src/farm/farm.ts). Модуль не трогает Roblox API:
+-- его гоняют тесты в Lune, а на сервере Roblox он живёт как обычный ModuleScript.
+
+local Config = if typeof(script) == "Instance" then require(script.Parent.Config) else require("./Config")
+
+local FARM = Config.FARM
+local CROPS = Config.CROPS
+local ITEMS = Config.ITEMS
+local BUILDINGS = Config.BUILDINGS
+local RECIPES = Config.RECIPES
+
+export type Plot = {
+	id: string,
+	x: number,
+	y: number,
+	crop: string?,
+	stage: string, -- empty | seed | green | ripe | rotten
+	growth: number, -- 0..1
+	water: number, -- 0..100
+	fertilized: boolean,
+	health: number, -- 0..1: доля урожая, уцелевшая после повреждений
+	ripeSeenMs: number, -- сколько зрелое пролежало при игроке (гниль считается только по нему)
+}
+
+export type Timer = { doneAtMs: number, totalMs: number, dish: string? }
+
+export type Event = { [string]: any } -- { kind = "planted", plotId = ..., ... }, поля как в types.ts
+export type LoggedEvent = { tMs: number, e: Event }
+
+export type FarmState = {
+	version: number,
+	seed: number,
+	rng: number,
+	tMs: number,
+	savedAtWallMs: number,
+	nextId: number,
+	coins: number,
+	xp: number,
+	level: number,
+	plots: { Plot },
+	stock: { [string]: number },
+	fertilizer: number,
+	buildings: { [string]: number },
+	construction: { building: string, level: number, remainingMs: number, totalMs: number }?,
+	orders: { { id: string, customer: string, items: { [string]: number }, coins: number, xp: number } },
+	ordersDone: number,
+	mill: Timer?,
+	bakery: Timer?,
+	kitchen: Timer?,
+	tray: { bread: number, coolUntilMs: number }?,
+	coop: { nextEggAtMs: number, scaredUntilMs: number },
+	wellNextAtMs: number,
+	totals: { [string]: number },
+	log: { LoggedEvent },
+	outbox: { LoggedEvent },
+	hint: string?,
+}
+
+local Farm = {}
+
+-- ---------- Случайность с сидом (mulberry32, как в TS: те же числа при том же сиде) ----------
+
+local function u32(x: number): number
+	return x % 4294967296
+end
+
+-- Нижние 32 бита произведения (Math.imul), без потери точности double.
+local function imul(a: number, b: number): number
+	local ah, al = bit32.rshift(a, 16), bit32.band(a, 0xffff)
+	local bh, bl = bit32.rshift(b, 16), bit32.band(b, 0xffff)
+	local mid = bit32.band(ah * bl + al * bh, 0xffff)
+	return u32(al * bl + mid * 65536)
+end
+
+function Farm.rand(f: FarmState): number
+	f.rng = u32(f.rng + 0x6d2b79f5)
+	local t = f.rng
+	t = imul(bit32.bxor(t, bit32.rshift(t, 15)), bit32.bor(t, 1))
+	t = bit32.bxor(t, u32(t + imul(bit32.bxor(t, bit32.rshift(t, 7)), bit32.bor(t, 61))))
+	return bit32.bxor(t, bit32.rshift(t, 14)) / 4294967296
+end
+
+-- Дробное количество превращается в целое честно: 1,4 — это 1 или 2 с шансом 40%.
+function Farm.randRound(f: FarmState, x: number): number
+	local base = math.floor(x)
+	return base + (if Farm.rand(f) < x - base then 1 else 0)
+end
+
+-- ---------- Журнал ----------
+
+local function trim(list: { LoggedEvent })
+	local extra = #list - FARM.logKeep
+	if extra > 0 then
+		table.move(list, extra + 1, #list, 1)
+		for i = #list, #list - extra + 1, -1 do
+			list[i] = nil
+		end
+	end
+end
+
+function Farm.emit(f: FarmState, e: Event)
+	local le = { tMs = f.tMs, e = e }
+	table.insert(f.log, le)
+	trim(f.log)
+	table.insert(f.outbox, le)
+	trim(f.outbox)
+end
+
+-- ---------- Создание ----------
+
+-- i считается с нуля, как в вебе: plot0, plot1, ...
+function Farm.plotPosition(i: number): (number, number)
+	local g = FARM.plotGrid
+	return g.x0 + (i % g.cols) * g.step, g.y0 + math.floor(i / g.cols) * g.step
+end
+
+local function makePlot(i: number): Plot
+	local x, y = Farm.plotPosition(i)
+	return { id = "plot" .. i, x = x, y = y, crop = nil, stage = "empty", growth = 0, water = 0, fertilized = false, health = 1, ripeSeenMs = 0 }
+end
+
+function Farm.emptyStock(): { [string]: number }
+	local s = {}
+	for _, it in Config.ITEM_LIST do
+		s[it] = 0
+	end
+	return s
+end
+
+function Farm.stageFor(crop: string, growth: number): string
+	if growth >= 1 then
+		return "ripe"
+	end
+	return if growth >= CROPS[crop].greenAt then "green" else "seed"
+end
+
+function Farm.create(seed: number): FarmState
+	local plots = {}
+	for i = 0, FARM.basePlots - 1 do
+		table.insert(plots, makePlot(i))
+	end
+	local stock = Farm.emptyStock()
+	stock.wheat = 3
+	stock.carrot = 2
+	local f: FarmState = {
+		version = FARM.saveVersion,
+		seed = seed,
+		rng = u32(seed),
+		tMs = 0,
+		savedAtWallMs = 0,
+		nextId = 1,
+		coins = FARM.startCoins,
+		xp = FARM.startXp,
+		level = 1,
+		plots = plots,
+		stock = stock,
+		fertilizer = FARM.startFertilizer,
+		buildings = { storage = 1, fields = 0, well = 0, compost = 0, coop = 0, mill = 0, bakery = 0, kitchen = 0 },
+		construction = nil,
+		orders = {},
+		ordersDone = 0,
+		mill = nil,
+		bakery = nil,
+		kitchen = nil,
+		tray = nil,
+		coop = { nextEggAtMs = 0, scaredUntilMs = 0 },
+		wellNextAtMs = 0,
+		totals = { harvested = 0, lostToDamage = 0, destroyed = 0, taken = 0, rotten = 0, sold = 0, earned = 0 },
+		log = {},
+		outbox = {},
+		hint = nil,
+	}
+	-- Стартовые грядки: что-то уже растёт, одна морковь почти зелёная.
+	for _, s in { { 1, "wheat", 0.6 }, { 2, "carrot", 0.3 }, { 3, "carrot", 0.95 } } do
+		local p = f.plots[s[1]]
+		p.crop = s[2]
+		p.growth = s[3]
+		p.water = 60
+		p.stage = Farm.stageFor(s[2], s[3])
+	end
+	for _ = 1, FARM.orderCount do
+		table.insert(f.orders, Farm.makeOrder(f))
+	end
+	return f
+end
+
+function Farm.plotById(f: FarmState, id: string): Plot?
+	for _, p in f.plots do
+		if p.id == id then
+			return p
+		end
+	end
+	return nil
+end
+
+function Farm.clearPlot(p: Plot)
+	p.crop = nil
+	p.stage = "empty"
+	p.growth = 0
+	p.water = 0
+	p.fertilized = false
+	p.health = 1
+	p.ripeSeenMs = 0
+end
+
+local function isGrowing(p: Plot): boolean
+	return p.crop ~= nil and (p.stage == "seed" or p.stage == "green")
+end
+Farm.isGrowing = isGrowing
+
+-- ---------- Уровень и опыт ----------
+
+function Farm.xpForLevel(level: number): number
+	local t = FARM.levelXp
+	return t[level] or (t[#t] + (level - #t) * 200)
+end
+
+function Farm.addXp(f: FarmState, n: number)
+	f.xp += math.max(0, math.round(n))
+	while f.xp >= Farm.xpForLevel(f.level + 1) do
+		f.level += 1
+		Farm.emit(f, { kind = "level_up", level = f.level })
+		f.hint = `⭐ Уровень фермы {f.level}!`
+	end
+end
+
+-- ---------- Амбар ----------
+
+function Farm.storageCap(f: FarmState): number
+	return FARM.storageCap[f.buildings.storage] or 25
+end
+
+function Farm.storedCount(f: FarmState): number
+	local s = 0
+	for _, it in Config.ITEM_LIST do
+		s += f.stock[it]
+	end
+	return s
+end
+
+function Farm.addItem(f: FarmState, item: string, n: number): number
+	local put = math.max(0, math.min(Farm.storageCap(f) - Farm.storedCount(f), n))
+	f.stock[item] += put
+	if put < n then
+		f.hint = "Амбар полон! Продай что-нибудь или улучши амбар"
+		Farm.emit(f, { kind = "storage_full", item = item, n = n - put })
+	end
+	return put
+end
+
+local function hasItems(f: FarmState, needs: { [string]: number }): boolean
+	for it, n in needs do
+		if f.stock[it] < n then
+			return false
+		end
+	end
+	return true
+end
+Farm.hasItems = hasItems
+
+local function takeItems(f: FarmState, needs: { [string]: number }): boolean
+	if not hasItems(f, needs) then
+		return false
+	end
+	for it, n in needs do
+		f.stock[it] -= n
+	end
+	return true
+end
+
+function Farm.fertCap(f: FarmState): number
+	return FARM.fertCap[if f.buildings.compost > 0 then 2 else 1]
+end
+
+function Farm.addFertilizerRaw(f: FarmState, n: number): number
+	local add = math.max(0, math.min(n, Farm.fertCap(f) - f.fertilizer))
+	f.fertilizer += add
+	return add
+end
+
+-- ---------- Урожай ----------
+
+-- Сколько даст грядка, если собрать сейчас (до округления).
+function Farm.expectedYield(p: Plot): number
+	if not p.crop then
+		return 0
+	end
+	return (FARM.harvestYield + (if p.fertilized then FARM.fertBonus else 0)) * p.health
+end
+
+-- Сколько осталось до спелости: пока есть вода — быстро, потом медленно (как в tick).
+function Farm.ripeInMs(p: Plot): number
+	if not isGrowing(p) then
+		return 0
+	end
+	local fert = if p.fertilized then FARM.fertMul else 1
+	local left = (1 - p.growth) * CROPS[p.crop :: string].growMs -- мс при множителе 1
+	local wetMs = (p.water / FARM.waterDecayPerSec) * 1000
+	local wetGain = wetMs * FARM.wetMul * fert
+	if wetGain >= left then
+		return math.ceil(left / (FARM.wetMul * fert))
+	end
+	return math.ceil(wetMs + (left - wetGain) / (FARM.dryMul * fert))
+end
+
+function Farm.harvest(f: FarmState, p: Plot): number
+	if p.stage ~= "ripe" or not p.crop then
+		return 0
+	end
+	local crop = p.crop :: string
+	local full = FARM.harvestYield + (if p.fertilized then FARM.fertBonus else 0)
+	local want = Farm.randRound(f, full * p.health)
+	local n = if want > 0 then Farm.addItem(f, crop, want) else 0
+	if want > 0 and n == 0 then
+		return 0 -- амбар полон — урожай ждёт на грядке
+	end
+	f.totals.harvested += n
+	f.totals.lostToDamage += full - want
+	Farm.addXp(f, CROPS[crop].xp)
+	Farm.emit(f, { kind = "harvested", plotId = p.id, crop = crop, n = n, lost = full - want })
+	Farm.clearPlot(p)
+	return n
+end
+
+-- ---------- Заказы ----------
+
+local function orderableItems(f: FarmState): { string }
+	local list = { "wheat", "carrot" }
+	if f.level >= CROPS.strawberry.level then
+		table.insert(list, "strawberry")
+	end
+	if f.level >= CROPS.pumpkin.level then
+		table.insert(list, "pumpkin")
+	end
+	if f.buildings.mill > 0 then
+		table.insert(list, "flour")
+	end
+	if f.buildings.coop > 0 then
+		table.insert(list, "egg")
+	end
+	if f.buildings.bakery > 0 then
+		table.insert(list, "bread")
+	end
+	if f.buildings.kitchen > 0 then
+		for _, d in Config.RECIPE_ORDER do
+			if f.level >= RECIPES[d].level then
+				table.insert(list, d)
+			end
+		end
+	end
+	return list
+end
+
+function Farm.makeOrder(f: FarmState)
+	local items = orderableItems(f)
+	local kinds = 1 + math.floor(Farm.rand(f) * math.min(3, #items))
+	local chosen: { [string]: number } = {}
+	local value = 0
+	for _ = 1, kinds do
+		local it = items[1 + math.floor(Farm.rand(f) * #items)]
+		local big = ITEMS[it].sell >= 14
+		local amt = 1 + math.floor(Farm.rand(f) * (if big then 2 else 4))
+		chosen[it] = (chosen[it] or 0) + amt
+		value += amt * ITEMS[it].sell
+	end
+	local coins = math.round(value * FARM.orderBonus + 3)
+	local id = "o" .. f.nextId
+	f.nextId += 1
+	local customer = Config.CUSTOMERS[1 + math.floor(Farm.rand(f) * #Config.CUSTOMERS)]
+	return { id = id, customer = customer, items = chosen, coins = coins, xp = math.max(1, math.round(coins * FARM.orderXpPerCoin)) }
+end
+
+function Farm.canComplete(f: FarmState, o): boolean
+	return hasItems(f, o.items)
+end
+
+-- ---------- Стройка ----------
+
+-- Возвращает ok, а дальше либо (cost, level), либо причину отказа.
+function Farm.canBuild(f: FarmState, b: string): (boolean, any, number?)
+	local info = BUILDINGS[b]
+	local lvl = f.buildings[b]
+	if lvl >= info.maxLevel then
+		return false, "уже максимум"
+	end
+	if f.level < info.level then
+		return false, `откроется на уровне {info.level}`
+	end
+	if f.construction then
+		return false, "уже идёт стройка"
+	end
+	if b == "bakery" and (f.buildings.mill == 0 or f.buildings.coop == 0) then
+		return false, "сначала мельница и курятник"
+	end
+	local cost = info.cost[lvl + 1] or info.cost[#info.cost]
+	if f.coins < cost then
+		return false, `нужно {cost} 💰`
+	end
+	return true, cost, lvl + 1
+end
+
+function Farm.finishConstruction(f: FarmState)
+	local c = f.construction
+	if not c then
+		return
+	end
+	f.construction = nil
+	f.buildings[c.building] = c.level
+	if c.building == "fields" then
+		local start = #f.plots
+		for i = start, start + FARM.plotsPerLevel - 1 do
+			table.insert(f.plots, makePlot(i))
+		end
+	end
+	if c.building == "coop" then
+		f.coop.nextEggAtMs = f.tMs + FARM.coop.eggEveryMs
+	end
+	if c.building == "well" then
+		f.wellNextAtMs = f.tMs
+	end
+	Farm.addXp(f, (BUILDINGS[c.building].cost[c.level] or 0) * FARM.buildXpPerCoin)
+	Farm.emit(f, { kind = "built", building = c.building, level = c.level })
+	f.hint = `🏗 {BUILDINGS[c.building].name} готово!`
+end
+
+-- ---------- Кухня ----------
+
+function Farm.canCook(f: FarmState, d: string): (boolean, string)
+	local r = RECIPES[d]
+	if f.buildings.kitchen == 0 then
+		return false, "нужна кухня"
+	end
+	if f.level < r.level then
+		return false, `откроется на уровне {r.level}`
+	end
+	if f.kitchen then
+		return false, "плита занята"
+	end
+	for it, n in r.needs do
+		if f.stock[it] < n then
+			return false, `не хватает: {ITEMS[it].icon}`
+		end
+	end
+	return true, ""
+end
+
+function Farm.trayPos(): (number, number)
+	return BUILDINGS.bakery.x - 90, BUILDINGS.bakery.y + 10
+end
+
+local function moveTrayToStorage(f: FarmState)
+	local tray = f.tray
+	if not tray then
+		return
+	end
+	local put = Farm.addItem(f, "bread", tray.bread)
+	if put > 0 then
+		Farm.emit(f, { kind = "produced", item = "bread", n = put, by = "bakery" })
+	end
+	tray.bread -= put
+	if tray.bread <= 0 then
+		f.tray = nil
+	else
+		tray.coolUntilMs = f.tMs + 5000 -- амбар полон — подождём
+	end
+end
+
+-- ---------- Ход времени ----------
+
+-- offline = игрока нет: всё растёт и производится, но зрелое не гниёт.
+-- Гниёт только то, что созрело при игроке и было брошено.
+function Farm.tick(f: FarmState, dtMs: number, offline: boolean?)
+	f.tMs += dtMs
+	local t = f.tMs
+	local sec = dtMs / 1000
+
+	for _, p in f.plots do
+		local crop = p.crop
+		if not crop or p.stage == "empty" or p.stage == "rotten" then
+			continue
+		end
+		if p.stage == "ripe" then
+			if offline then
+				continue
+			end
+			p.ripeSeenMs += dtMs
+			if p.ripeSeenMs >= FARM.rotAfterMs then
+				p.stage = "rotten"
+				f.totals.rotten += 1
+				Farm.emit(f, { kind = "rotten", plotId = p.id, crop = crop })
+			end
+			continue
+		end
+		local mul = (if p.water > 0 then FARM.wetMul else FARM.dryMul) * (if p.fertilized then FARM.fertMul else 1)
+		p.growth = math.min(1, p.growth + (dtMs * mul) / CROPS[crop].growMs)
+		p.water = math.max(0, p.water - FARM.waterDecayPerSec * sec)
+		local st = Farm.stageFor(crop, p.growth)
+		if st ~= p.stage then
+			p.stage = st
+			if st == "ripe" then
+				p.ripeSeenMs = 0
+				Farm.emit(f, { kind = "ripe", plotId = p.id, crop = crop })
+			end
+		end
+	end
+
+	local c = f.construction
+	if c then
+		c.remainingMs -= dtMs
+		if c.remainingMs <= 0 then
+			Farm.finishConstruction(f)
+		end
+	end
+
+	-- Готовая мука ждёт на мельнице, если амбар полон.
+	if f.mill and t >= f.mill.doneAtMs and Farm.addItem(f, "flour", 1) == 1 then
+		f.mill = nil
+		Farm.emit(f, { kind = "produced", item = "flour", n = 1, by = "mill" })
+	end
+	if f.bakery and t >= f.bakery.doneAtMs then
+		f.bakery = nil
+		f.tray = { bread = (if f.tray then f.tray.bread else 0) + FARM.bakery.bread, coolUntilMs = t + FARM.trayCoolMs }
+	end
+	if f.tray and t >= f.tray.coolUntilMs then
+		moveTrayToStorage(f)
+	end
+	local k = f.kitchen
+	if k and t >= k.doneAtMs and Farm.addItem(f, k.dish :: string, 1) == 1 then
+		Farm.emit(f, { kind = "produced", item = k.dish, n = 1, by = "kitchen" })
+		f.kitchen = nil
+	end
+
+	-- Курятник: яйцо, если есть пшеница на корм и куры не напуганы.
+	if f.buildings.coop > 0 and t >= f.coop.nextEggAtMs and t >= f.coop.scaredUntilMs then
+		f.coop.nextEggAtMs = t + FARM.coop.eggEveryMs
+		if f.stock.wheat > 0 and Farm.addItem(f, "egg", 1) == 1 then
+			f.stock.wheat -= 1
+			Farm.emit(f, { kind = "produced", item = "egg", n = 1, by = "coop" })
+		end
+	end
+
+	local wl = f.buildings.well
+	if wl > 0 and t >= f.wellNextAtMs then
+		f.wellNextAtMs = t + FARM.wellEveryMs[wl]
+		for _, p in f.plots do
+			if isGrowing(p) then
+				p.water = 100
+			end
+		end
+	end
+end
+
+-- Офлайн: шагами по секунде, не дольше предела. Зрелое за это время не гниёт.
+function Farm.advance(f: FarmState, ms: number)
+	local left = math.min(ms, FARM.offlineMaxMs)
+	while left > 0 do
+		local d = math.min(1000, left)
+		Farm.tick(f, d, true)
+		left -= d
+	end
+end
+
+-- ---------- Команды игрока ----------
+-- Команда — таблица { type = "plant", plotId = "plot3", crop = "carrot" } и т.п., как FarmCommand в TS.
+-- Сервер Roblox проверяет форму команды до вызова (FarmService), здесь — правила игры.
+
+local function no(f: FarmState, why: string): boolean
+	f.hint = why
+	return false
+end
+
+local handlers: { [string]: (FarmState, any) -> boolean } = {}
+
+handlers.plant = function(f, c)
+	local p = Farm.plotById(f, c.plotId)
+	if not p or p.stage ~= "empty" then
+		return false
+	end
+	local info = CROPS[c.crop]
+	if f.level < info.level then
+		return no(f, `{ITEMS[c.crop].name}: откроется на уровне {info.level}`)
+	end
+	local bag = (f :: any).seeds -- мешок семян (Roblox-версия с лавкой); в вебе его нет
+	if bag and info.seedCost > 0 then
+		if (bag[c.crop] or 0) <= 0 then
+			return no(f, `нет семян: {ITEMS[c.crop].name}. Купи в лавке семян`)
+		end
+		bag[c.crop] -= 1
+	else
+		if f.coins < info.seedCost then
+			return no(f, `семена стоят {info.seedCost} 💰`)
+		end
+		f.coins -= info.seedCost
+	end
+	Farm.clearPlot(p)
+	p.crop = c.crop
+	p.stage = "seed"
+	Farm.emit(f, { kind = "planted", plotId = p.id, crop = c.crop })
+	return true
+end
+
+handlers.water = function(f, c)
+	local p = Farm.plotById(f, c.plotId)
+	if not p or not isGrowing(p) then
+		return false
+	end
+	p.water = 100
+	return true
+end
+
+handlers.water_all = function(f, _c)
+	local n = 0
+	for _, p in f.plots do
+		if isGrowing(p) then
+			p.water = 100
+			n += 1
+		end
+	end
+	return n > 0
+end
+
+handlers.fertilize = function(f, c)
+	local p = Farm.plotById(f, c.plotId)
+	if not p or p.fertilized or not isGrowing(p) then
+		return false
+	end
+	if f.fertilizer <= 0 then
+		return no(f, "нет удобрения")
+	end
+	f.fertilizer -= 1
+	p.fertilized = true
+	return true
+end
+
+handlers.harvest = function(f, c)
+	local p = Farm.plotById(f, c.plotId)
+	return p ~= nil and Farm.harvest(f, p) > 0
+end
+
+handlers.harvest_all = function(f, _c)
+	local n = 0
+	for _, p in f.plots do
+		if p.stage == "ripe" then
+			n += Farm.harvest(f, p)
+		end
+	end
+	return n > 0
+end
+
+handlers.clear = function(f, c)
+	local p = Farm.plotById(f, c.plotId)
+	if not p or p.stage ~= "rotten" then
+		return false
+	end
+	Farm.clearPlot(p)
+	if f.buildings.compost > 0 then
+		local n = Farm.addFertilizerRaw(f, 1)
+		if n > 0 then
+			Farm.emit(f, { kind = "fertilizer", n = n, source = "компостер" })
+		end
+	end
+	return true
+end
+
+handlers.sell = function(f, c)
+	local n = math.min(c.count, f.stock[c.item])
+	if n <= 0 then
+		return false
+	end
+	f.stock[c.item] -= n
+	local coins = n * ITEMS[c.item].sell
+	f.coins += coins
+	f.totals.sold += n
+	f.totals.earned += coins
+	Farm.emit(f, { kind = "sold", item = c.item, n = n, coins = coins })
+	return true
+end
+
+local function replaceOrder(f: FarmState, id: string)
+	for i, o in f.orders do
+		if o.id == id then
+			f.orders[i] = Farm.makeOrder(f)
+		end
+	end
+end
+
+handlers.complete_order = function(f, c)
+	local o
+	for _, x in f.orders do
+		if x.id == c.orderId then
+			o = x
+		end
+	end
+	if not o then
+		return false
+	end
+	if not takeItems(f, o.items) then
+		return no(f, "не хватает продуктов")
+	end
+	f.coins += o.coins
+	f.totals.earned += o.coins
+	f.ordersDone += 1
+	Farm.addXp(f, o.xp)
+	Farm.emit(f, { kind = "order_done", customer = o.customer, coins = o.coins })
+	replaceOrder(f, o.id)
+	f.hint = `+{o.coins} 💰`
+	return true
+end
+
+handlers.skip_order = function(f, c)
+	replaceOrder(f, c.orderId)
+	return true
+end
+
+handlers.build = function(f, c)
+	local ok, costOrWhy, level = Farm.canBuild(f, c.building)
+	if not ok then
+		return no(f, costOrWhy)
+	end
+	f.coins -= costOrWhy
+	local ms = BUILDINGS[c.building].buildMs[level :: number] or 60000
+	f.construction = { building = c.building, level = level :: number, remainingMs = ms, totalMs = ms }
+	Farm.emit(f, { kind = "build_started", building = c.building, level = level })
+	if ms <= 0 then
+		Farm.finishConstruction(f)
+	end
+	return true
+end
+
+handlers.start_mill = function(f, _c)
+	if f.buildings.mill == 0 or f.mill then
+		return false
+	end
+	if not takeItems(f, { wheat = FARM.mill.wheat }) then
+		return no(f, `нужно {FARM.mill.wheat} 🌾`)
+	end
+	f.mill = { doneAtMs = f.tMs + FARM.mill.ms, totalMs = FARM.mill.ms }
+	return true
+end
+
+handlers.start_bakery = function(f, _c)
+	if f.buildings.bakery == 0 or f.bakery then
+		return false
+	end
+	if not takeItems(f, { flour = 1, egg = 1 }) then
+		return no(f, "нужны 🥡 мука и 🥚 яйцо")
+	end
+	f.bakery = { doneAtMs = f.tMs + FARM.bakery.ms, totalMs = FARM.bakery.ms }
+	return true
+end
+
+handlers.cook = function(f, c)
+	local ok, why = Farm.canCook(f, c.dish)
+	if not ok then
+		return no(f, why)
+	end
+	local r = RECIPES[c.dish]
+	takeItems(f, r.needs)
+	f.kitchen = { dish = c.dish, doneAtMs = f.tMs + r.cookMs, totalMs = r.cookMs }
+	return true
+end
+
+handlers.take_tray = function(f, _c)
+	if not f.tray then
+		return false
+	end
+	moveTrayToStorage(f)
+	return true
+end
+
+function Farm.command(f: FarmState, c: { [string]: any }): boolean
+	local h = handlers[c.type]
+	return if h then h(f, c) else false
+end
+
+return Farm
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="11">
+          <Properties>
+            <string name="Name">Save</string>
+            <string name="Source"><![CDATA[--!strict
+-- Сохранение фермы в простую таблицу и обратно (перенос src/farm/save.ts).
+-- Таблица без функций и Instance, её можно положить в DataStore как есть.
+-- DataStore на сервере пока выключен (см. FarmService, USE_DATASTORE).
+
+local IS_ROBLOX = typeof(script) == "Instance"
+local Config = if IS_ROBLOX then require(script.Parent.Config) else require("./Config")
+local Farm = if IS_ROBLOX then require(script.Parent.Farm) else require("./Farm")
+
+local Save = {}
+
+local function deepCopy(v: any): any
+	if type(v) ~= "table" then
+		return v
+	end
+	local out = {}
+	for k, x in v do
+		out[k] = deepCopy(x)
+	end
+	return out
+end
+
+-- wallSec — настоящее время (os.time() на сервере), чтобы при входе дожить офлайн.
+function Save.toData(f: Farm.FarmState, wallSec: number): { [string]: any }
+	local data = deepCopy(f)
+	data.savedAtWallMs = wallSec * 1000
+	data.outbox = {}
+	data.log = {} -- журнал не храним: экономим место в DataStore
+	return data
+end
+
+function Save.fromData(data: any): (Farm.FarmState?, string?)
+	if type(data) ~= "table" then
+		return nil, "нет данных"
+	end
+	if data.version ~= Config.FARM.saveVersion then
+		return nil, `сохранение версии {data.version}, нужна {Config.FARM.saveVersion}`
+	end
+	local f = deepCopy(data)
+	local stock = Farm.emptyStock()
+	for k, n in (f.stock or {}) do
+		if type(n) == "number" then
+			stock[k] = n
+		end
+	end
+	f.stock = stock
+	for _, p in f.plots do
+		if type(p.ripeSeenMs) ~= "number" then
+			p.ripeSeenMs = 0
+		end
+	end
+	f.log = f.log or {}
+	f.outbox = {}
+	return f, nil
+end
+
+-- Вход игрока: ферма доживает время, пока его не было (до 8 часов, зрелое не гниёт).
+function Save.catchUp(f: Farm.FarmState, nowWallSec: number): number
+	local awayMs = math.max(0, nowWallSec * 1000 - (f.savedAtWallMs or 0))
+	if f.savedAtWallMs and f.savedAtWallMs > 0 and awayMs > 0 then
+		Farm.advance(f, awayMs)
+		return math.min(awayMs, Config.FARM.offlineMaxMs)
+	end
+	return 0
+end
+
+return Save
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="12">
+          <Properties>
+            <string name="Name">Shop</string>
+            <string name="Source"><![CDATA[--!strict
+-- Лавка семян как в Grow a Garden: запас обновляется каждые 5 минут и одинаков
+-- на всех серверах. Номер интервала берётся из общего времени сервера
+-- (workspace:GetServerTimeNow()), запас считается из него без связи между серверами.
+-- Каждый игрок покупает из своей копии запаса. Пшеница всегда бесплатна и без лавки,
+-- чтобы игрок никогда не застрял без семян.
+
+local IS_ROBLOX = typeof(script) == "Instance"
+local Config = if IS_ROBLOX then require(script.Parent.Config) else require("./Config")
+local Farm = if IS_ROBLOX then require(script.Parent.Farm) else require("./Farm")
+
+local Shop = {}
+
+Shop.INTERVAL_SEC = 300
+Shop.SALT = 0x5eed -- меняется — меняется весь будущий запас
+Shop.CROPS = { "carrot", "strawberry", "pumpkin" }
+
+-- Сколько пачек может выпасть: [мин, макс] и шанс, что культура вообще будет в лавке.
+Shop.STOCK = {
+	carrot = { min = 4, max = 9, chance = 1 },
+	strawberry = { min = 2, max = 6, chance = 0.85 },
+	pumpkin = { min = 1, max = 3, chance = 0.5 },
+}
+
+function Shop.interval(serverTimeSec: number): number
+	return math.floor(serverTimeSec / Shop.INTERVAL_SEC)
+end
+
+function Shop.secondsLeft(serverTimeSec: number): number
+	return Shop.INTERVAL_SEC - (serverTimeSec % Shop.INTERVAL_SEC)
+end
+
+-- Запас лавки на интервал n: одинаковый для всех серверов и игроков.
+function Shop.stock(n: number): { [string]: number }
+	local r = { rng = (n * 7919 + Shop.SALT) % 4294967296 } :: any
+	local out = {}
+	for _, c in Shop.CROPS do
+		local s = Shop.STOCK[c]
+		local roll = Farm.rand(r)
+		local k = s.min + math.floor(Farm.rand(r) * (s.max - s.min + 1))
+		out[c] = if roll < s.chance then k else 0
+	end
+	return out
+end
+
+-- У фермы появляются мешок семян и запись о покупках в текущем интервале.
+function Shop.attach(f: Farm.FarmState)
+	local x = f :: any
+	x.seeds = x.seeds or { carrot = 2, strawberry = 0, pumpkin = 0 }
+	x.shop = x.shop or { interval = -1, bought = {} }
+end
+
+-- Сколько ещё можно купить этому игроку сейчас.
+function Shop.left(f: Farm.FarmState, serverTimeSec: number): { [string]: number }
+	local x = f :: any
+	local n = Shop.interval(serverTimeSec)
+	if x.shop.interval ~= n then
+		x.shop = { interval = n, bought = {} }
+	end
+	local out = {}
+	for c, k in Shop.stock(n) do
+		out[c] = math.max(0, k - (x.shop.bought[c] or 0))
+	end
+	return out
+end
+
+function Shop.buy(f: Farm.FarmState, crop: string, serverTimeSec: number): boolean
+	local x = f :: any
+	local info = Config.CROPS[crop]
+	if not info or not Shop.STOCK[crop] then
+		return false
+	end
+	if f.level < info.level then
+		f.hint = `{Config.ITEMS[crop].name}: откроется на уровне {info.level}`
+		return false
+	end
+	if (Shop.left(f, serverTimeSec)[crop] or 0) <= 0 then
+		f.hint = "Распродано. Лавка обновится через " .. math.ceil(Shop.secondsLeft(serverTimeSec)) .. " с"
+		return false
+	end
+	if f.coins < info.seedCost then
+		f.hint = `семена стоят {info.seedCost} 💰`
+		return false
+	end
+	f.coins -= info.seedCost
+	x.seeds[crop] = (x.seeds[crop] or 0) + 1
+	x.shop.bought[crop] = (x.shop.bought[crop] or 0) + 1
+	return true
+end
+
+return Shop
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="13">
+          <Properties>
+            <string name="Name">Text</string>
+            <string name="Source"><![CDATA[--!strict
+-- События фермы человеческим языком: для журнала на экране. Перенос src/farm/text.ts.
+
+local Config = if typeof(script) == "Instance" then require(script.Parent.Config) else require("./Config")
+
+local ITEMS = Config.ITEMS
+local BUILDINGS = Config.BUILDINGS
+
+local STAGE = { seed = "росток", green = "зелёную", ripe = "спелую", rotten = "гнилую", empty = "пустую" }
+
+local function pct(x: number): string
+	return `{math.round(x * 100)}%`
+end
+
+local function it(i: string): string
+	return `{ITEMS[i].icon} {ITEMS[i].name}`
+end
+
+local function lvl(level: number): string
+	return if level > 1 then ` (ур. {level})` else ""
+end
+
+local TEXT: { [string]: (any) -> string } = {
+	planted = function(e) return `🌱 Посажено: {it(e.crop)}` end,
+	ripe = function(e) return `✅ Созрело: {it(e.crop)}` end,
+	harvested = function(e)
+		return `🧺 Собрано: {it(e.crop)} ×{e.n}` .. (if e.lost > 0 then ` (потеряно {e.lost} из-за повреждений)` else "")
+	end,
+	rotten = function(e) return `🤢 Сгнило на грядке: {it(e.crop)}` end,
+	damaged = function(e) return `⚠ {e.cause}: {it(e.crop)} потеряла {pct(e.share)}, уцелело {pct(e.health)}` end,
+	destroyed = function(e) return `💥 {e.cause}: {STAGE[e.stage] or ""} {ITEMS[e.crop].name} уничтожена целиком` end,
+	taken = function(e)
+		return `👐 {e.cause}: взято {it(e.item)} ×{e.n} (` .. (if e.from == "tray" then "с противня" else "из амбара") .. ")"
+	end,
+	produced = function(e) return `🏭 {BUILDINGS[e.by].name}: {it(e.item)} ×{e.n}` end,
+	storage_full = function(e) return `📦 Амбар полон: {it(e.item)} ×{e.n} не влезло` end,
+	sold = function(e) return `💰 Продано: {it(e.item)} ×{e.n} за {e.coins}` end,
+	order_done = function(e) return `📜 Заказ «{e.customer}» выполнен: +{e.coins} 💰` end,
+	build_started = function(e) return `🔨 Стройка: {BUILDINGS[e.building].name}{lvl(e.level)}` end,
+	built = function(e) return `🏗 Построено: {BUILDINGS[e.building].name}{lvl(e.level)}` end,
+	build_helped = function(e) return `🧱 {e.cause}: стройка быстрее на {math.round(e.ms / 1000)} с` end,
+	fertilizer = function(e) return `✨ Удобрение +{e.n} ({e.source})` end,
+	level_up = function(e) return `⭐ Уровень фермы {e.level}` end,
+	chickens_scared = function(e) return `🐔 {e.cause}: куры напуганы на {math.round(e.ms / 1000)} с` end,
+}
+
+return function(e: { [string]: any }): string
+	local f = TEXT[e.kind]
+	return if f then f(e) else e.kind
+end
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="14">
+          <Properties>
+            <string name="Name">View</string>
+            <string name="Source"><![CDATA[--!strict
+-- Снимок фермы для экрана игрока. Сервер считает его из состояния и шлёт клиенту,
+-- клиент только рисует: правила игры живут на сервере.
+
+local IS_ROBLOX = typeof(script) == "Instance"
+local Config = if IS_ROBLOX then require(script.Parent.Config) else require("./Config")
+local Farm = if IS_ROBLOX then require(script.Parent.Farm) else require("./Farm")
+
+local ITEMS = Config.ITEMS
+local BUILDINGS = Config.BUILDINGS
+local RECIPES = Config.RECIPES
+local CROPS = Config.CROPS
+
+local View = {}
+
+local function itemsList(f: Farm.FarmState, needs: { [string]: number })
+	local out = {}
+	for _, it in Config.ITEM_LIST do
+		local n = needs[it]
+		if n then
+			table.insert(out, { id = it, icon = ITEMS[it].icon, n = n, have = f.stock[it] })
+		end
+	end
+	return out
+end
+
+local function timer(f: Farm.FarmState, t: Farm.Timer?)
+	if not t then
+		return nil
+	end
+	return { leftMs = math.max(0, t.doneAtMs - f.tMs), totalMs = t.totalMs, dish = t.dish }
+end
+
+function View.snapshot(f: Farm.FarmState, extra: { [string]: any }?)
+	local stock = {}
+	for _, it in Config.ITEM_LIST do
+		if f.stock[it] > 0 then
+			table.insert(stock, { id = it, icon = ITEMS[it].icon, name = ITEMS[it].name, n = f.stock[it], sell = ITEMS[it].sell })
+		end
+	end
+
+	local orders = {}
+	for _, o in f.orders do
+		table.insert(orders, { id = o.id, customer = o.customer, items = itemsList(f, o.items), coins = o.coins, xp = o.xp, can = Farm.canComplete(f, o) })
+	end
+
+	local buildings = {}
+	for _, b in Config.BUILDING_LIST do
+		local info = BUILDINGS[b]
+		local ok, costOrWhy = Farm.canBuild(f, b)
+		local lvl = f.buildings[b]
+		table.insert(buildings, {
+			id = b,
+			name = info.name,
+			icon = info.icon,
+			about = info.about,
+			level = lvl,
+			maxLevel = info.maxLevel,
+			cost = info.cost[lvl + 1],
+			can = ok,
+			why = if ok then nil else costOrWhy,
+		})
+	end
+
+	local crops = {}
+	for _, c in Config.CROP_LIST do
+		table.insert(crops, { id = c, icon = ITEMS[c].icon, name = ITEMS[c].name, cost = CROPS[c].seedCost, unlocked = f.level >= CROPS[c].level, level = CROPS[c].level })
+	end
+
+	local recipes = {}
+	for _, d in Config.RECIPE_ORDER do
+		local ok, why = Farm.canCook(f, d)
+		table.insert(recipes, { id = d, icon = RECIPES[d].icon, name = RECIPES[d].name, needs = itemsList(f, RECIPES[d].needs), can = ok, why = why })
+	end
+
+	local con = f.construction
+	return {
+		coins = f.coins,
+		level = f.level,
+		xp = f.xp,
+		xpFrom = Farm.xpForLevel(f.level),
+		xpTo = Farm.xpForLevel(f.level + 1),
+		fertilizer = f.fertilizer,
+		fertCap = Farm.fertCap(f),
+		used = Farm.storedCount(f),
+		cap = Farm.storageCap(f),
+		stock = stock,
+		orders = orders,
+		buildings = buildings,
+		crops = crops,
+		recipes = recipes,
+		construction = if con then { name = BUILDINGS[con.building].name, icon = BUILDINGS[con.building].icon, leftMs = con.remainingMs, totalMs = con.totalMs } else nil,
+		has = { mill = f.buildings.mill > 0, bakery = f.buildings.bakery > 0, kitchen = f.buildings.kitchen > 0, coop = f.buildings.coop > 0 },
+		mill = timer(f, f.mill),
+		bakery = timer(f, f.bakery),
+		kitchen = timer(f, f.kitchen),
+		tray = if f.tray then { bread = f.tray.bread, leftMs = math.max(0, f.tray.coolUntilMs - f.tMs) } else nil,
+		hint = f.hint,
+		extra = extra,
+	}
+end
+
+return View
+]]></string>
+          </Properties>
+        </Item>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="ServerScriptService" referent="15">
+    <Properties>
+      <string name="Name">ServerScriptService</string>
+    </Properties>
+    <Item class="Folder" referent="16">
+      <Properties>
+        <string name="Name">Server</string>
+      </Properties>
+      <Item class="Script" referent="17">
+        <Properties>
+          <string name="Name">FarmService</string>
+          <token name="RunContext">0</token>
+          <string name="Source"><![CDATA[--!strict
+-- Сервер фермы. Сервер главный: он хранит фермы, двигает время и проверяет каждую
+-- команду игрока. Клиент только рисует экран и шлёт просьбы через FarmRemotes.Command.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local DataStoreService = game:GetService("DataStoreService")
+
+local FarmPkg = ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Farm")
+local Config = require(FarmPkg:WaitForChild("Config"))
+local Farm = require(FarmPkg:WaitForChild("Farm"))
+local Contract = require(FarmPkg:WaitForChild("Contract"))
+local Save = require(FarmPkg:WaitForChild("Save"))
+local Text = require(FarmPkg:WaitForChild("Text"))
+local View = require(FarmPkg:WaitForChild("View"))
+local Shop = require(FarmPkg:WaitForChild("Shop"))
+local Village = require(script.Parent:WaitForChild("Village"))
+local FarmWorld = require(script.Parent:WaitForChild("FarmWorld"))
+local Sky = require(script.Parent:WaitForChild("Sky"))
+
+-- Сохранение в DataStore выключено, пока проверяем механику. Чтобы включить:
+-- опубликовать место, в Studio включить Game Settings → Security → Enable Studio Access to API Services
+-- и поставить true. Ферма тогда сохраняется при выходе и раз в минуту, а при входе доживает офлайн.
+local USE_DATASTORE = false
+local STORE_KEY = "farm_v1_"
+local SEND_EVERY = 0.5 -- секунд между снимками для экрана
+local DEBUG = RunService:IsStudio() -- кнопки отладки и «Внешний мир» только в Studio
+
+local remotes = Instance.new("Folder")
+remotes.Name = "FarmRemotes"
+local commandRemote = Instance.new("RemoteEvent")
+commandRemote.Name = "Command"
+commandRemote.Parent = remotes
+local stateRemote = Instance.new("RemoteEvent")
+stateRemote.Name = "State"
+stateRemote.Parent = remotes
+local openRemote = Instance.new("RemoteEvent")
+openRemote.Name = "Open"
+openRemote.Parent = remotes
+remotes.Parent = ReplicatedStorage
+
+local villageFolder = Instance.new("Folder")
+villageFolder.Name = "Village"
+villageFolder.Parent = workspace
+Sky.build(workspace)
+
+type Session = {
+	player: Player,
+	slot: number,
+	farm: Farm.FarmState,
+	world: FarmWorld.World,
+	sign: TextLabel,
+	slotModel: Model,
+	crop: string, -- что сажать по клику на пустую грядку
+	tool: string, -- "auto" | "fertilize"
+	log: { string }, -- новые строки журнала, ещё не отправленные на экран
+	budget: number, -- ограничение частоты команд
+	sendIn: number,
+}
+
+local sessions: { [Player]: Session } = {}
+local slotModels: { [number]: { model: Model, sign: TextLabel } } = {}
+
+for i = 1, Village.SLOTS do
+	local model, sign = FarmWorld.buildSlot(i, villageFolder)
+	slotModels[i] = { model = model, sign = sign }
+end
+
+local store = if USE_DATASTORE then DataStoreService:GetDataStore("OneBeastFarm") else nil
+
+-- ---------- Проверка команд от клиента ----------
+-- Клиенту не верим: каждое поле проверяется по списку разрешённых значений.
+
+local function isString(v: any, set: { [string]: any }?): boolean
+	return type(v) == "string" and #v < 40 and (set == nil or set[v] ~= nil)
+end
+
+local function ownPlot(s: Session, id: any): boolean
+	return isString(id) and Farm.plotById(s.farm, id) ~= nil
+end
+
+local VALID: { [string]: (Session, any) -> boolean } = {
+	plant = function(s, c) return ownPlot(s, c.plotId) and isString(c.crop, Config.CROPS) end,
+	water = function(s, c) return ownPlot(s, c.plotId) end,
+	water_all = function() return true end,
+	fertilize = function(s, c) return ownPlot(s, c.plotId) end,
+	harvest = function(s, c) return ownPlot(s, c.plotId) end,
+	harvest_all = function() return true end,
+	clear = function(s, c) return ownPlot(s, c.plotId) end,
+	sell = function(_, c) return isString(c.item, Config.ITEMS) and type(c.count) == "number" and c.count >= 1 and c.count <= 999 and c.count % 1 == 0 end,
+	complete_order = function(_, c) return isString(c.orderId) end,
+	skip_order = function(_, c) return isString(c.orderId) end,
+	build = function(_, c) return isString(c.building, Config.BUILDINGS) end,
+	start_mill = function() return true end,
+	start_bakery = function() return true end,
+	cook = function(_, c) return isString(c.dish, Config.RECIPES) end,
+	take_tray = function() return true end,
+}
+
+-- Только в Studio: кнопки вкладки «Внешний мир», чтобы проверить стык без зверя.
+local DEBUG_ACTIONS: { [string]: (Farm.FarmState) -> () } = {
+	coins = function(f) f.coins += 100 end,
+	skip = function(f) for _ = 1, 60000 / Config.FARM.stepMs do Farm.tick(f, Config.FARM.stepMs) end end,
+	offline = function(f) Farm.advance(f, 3600000) end,
+	hail = function(f) Contract.damageCrops(f, 0.3, "Град") end,
+	trample = function(f)
+		for _, p in f.plots do
+			if p.crop and p.stage ~= "rotten" then
+				Contract.damagePlot(f, p.id, 0.3, "Зверь потоптал")
+				return
+			end
+		end
+	end,
+	eat_green = function(f)
+		for _, p in f.plots do
+			if p.stage == "green" then
+				Contract.eatPlot(f, p.id, "Зверь")
+				return
+			end
+		end
+	end,
+	thief = function(f) Contract.takeFromStorage(f, "any", 2, "Вор") end,
+	tray = function(f) Contract.takeFromTray(f, 1, "Зверь") end,
+	manure = function(f) Contract.addFertilizer(f, 1, "Зверь") end,
+	stones = function(f) Contract.helpConstruction(f, 12000, "Зверь") end,
+	chickens = function(f) Contract.scareChickens(f, 20000, "Зверь") end,
+}
+
+-- Общее время всех серверов: по нему лавка семян обновляется одновременно везде.
+local function serverTime(): number
+	return workspace:GetServerTimeNow()
+end
+
+-- Табличка над участком: видно соседям, как идут дела.
+local function updateSign(s: Session)
+	local text = `Ферма {s.player.DisplayName} · ⭐{s.farm.level} · 💰{s.farm.coins}`
+	if s.sign.Text ~= text then
+		s.sign.Text = text
+	end
+end
+
+local function sendState(s: Session)
+	updateSign(s)
+	local objects = {}
+	if DEBUG then
+		for _, o in Contract.objects(s.farm) do
+			table.insert(objects, `{o.id}: {o.label} [{table.concat(o.tags, ", ")}]`)
+		end
+	end
+	local now = serverTime()
+	local shop = { left = Shop.left(s.farm, now), secondsLeft = Shop.secondsLeft(now), seeds = (s.farm :: any).seeds }
+	local snap = View.snapshot(s.farm, { crop = s.crop, tool = s.tool, debug = DEBUG, objects = objects, shop = shop })
+	snap.log = s.log
+	s.log = {}
+	stateRemote:FireClient(s.player, snap)
+	s.farm.hint = nil
+	s.sendIn = SEND_EVERY
+end
+
+local function collectLog(s: Session)
+	for _, le in Contract.drainEvents(s.farm) do
+		table.insert(s.log, Text(le.e))
+	end
+	-- Здесь позже сборка «Деревня» отдаст события зверю (стык, раздел 3).
+end
+
+local function onCommand(player: Player, c: any)
+	local s = sessions[player]
+	if not s or type(c) ~= "table" or type(c.type) ~= "string" then
+		return
+	end
+	if s.budget <= 0 then
+		return -- слишком часто
+	end
+	s.budget -= 1
+
+	if c.type == "select_crop" then
+		if isString(c.crop, Config.CROPS) then
+			s.crop = c.crop
+			s.tool = "auto"
+		end
+	elseif c.type == "buy_seed" then
+		if isString(c.crop, Shop.STOCK) then
+			Shop.buy(s.farm, c.crop, serverTime())
+		end
+	elseif c.type == "tool" then
+		if c.tool == "auto" or c.tool == "fertilize" then
+			s.tool = c.tool
+		end
+	elseif c.type == "debug" then
+		local fn = DEBUG_ACTIONS[c.action]
+		if DEBUG and isString(c.action) and fn then
+			fn(s.farm)
+		end
+	else
+		local valid = VALID[c.type]
+		if not valid or not valid(s, c) then
+			return
+		end
+		-- Пересобираем команду из проверенных полей, лишнее не пропускаем.
+		Farm.command(s.farm, { type = c.type, plotId = c.plotId, crop = c.crop, item = c.item, count = c.count, orderId = c.orderId, building = c.building, dish = c.dish })
+	end
+	collectLog(s)
+	s.world:update(s.farm)
+	sendState(s)
+end
+
+-- Клик по грядке в мире: одно действие по смыслу (посадить, полить, собрать, убрать).
+local function onPlotClick(s: Session, plotId: string)
+	local f = s.farm
+	local p = Farm.plotById(f, plotId)
+	if not p then
+		return
+	end
+	if s.tool == "fertilize" and Farm.isGrowing(p) then
+		Farm.command(f, { type = "fertilize", plotId = plotId })
+		s.tool = "auto"
+	elseif p.stage == "empty" then
+		Farm.command(f, { type = "plant", plotId = plotId, crop = s.crop })
+	elseif Farm.isGrowing(p) then
+		Farm.command(f, { type = "water", plotId = plotId })
+	elseif p.stage == "ripe" then
+		Farm.command(f, { type = "harvest", plotId = plotId })
+	elseif p.stage == "rotten" then
+		Farm.command(f, { type = "clear", plotId = plotId })
+	end
+end
+
+local BUILDING_TAB = { storage = "storage", well = "build", compost = "build", coop = "workshop", mill = "workshop", bakery = "workshop", kitchen = "workshop" }
+
+local function onWorldClick(player: Player, kind: string, id: string)
+	local s = sessions[player]
+	if not s or not s.world then
+		return
+	end
+	if kind == "plot" then
+		onPlotClick(s, id)
+	elseif kind == "tray" then
+		Farm.command(s.farm, { type = "take_tray" })
+	elseif kind == "building" then
+		local tab = if s.farm.buildings[id] > 0 then BUILDING_TAB[id] else "build"
+		openRemote:FireClient(player, tab)
+	end
+	collectLog(s)
+	s.world:update(s.farm)
+	sendState(s)
+end
+
+-- ---------- Вход и выход ----------
+
+local function loadFarm(player: Player): Farm.FarmState
+	if store then
+		local ok, data = pcall(function()
+			return store:GetAsync(STORE_KEY .. player.UserId)
+		end)
+		if ok and data then
+			local f = Save.fromData(data)
+			if f then
+				Save.catchUp(f, os.time())
+				return f
+			end
+		end
+	end
+	return Farm.create(player.UserId % 2147483647)
+end
+
+local function saveFarm(s: Session)
+	if not store then
+		return
+	end
+	local data = Save.toData(s.farm, os.time())
+	pcall(function()
+		store:SetAsync(STORE_KEY .. s.player.UserId, data)
+	end)
+end
+
+local function placeCharacter(s: Session, character: Model)
+	local root = character:WaitForChild("HumanoidRootPart", 5) :: BasePart?
+	task.wait(0.2) -- иначе точка появления может перебить наш перенос
+	if root and root.Parent then
+		root.CFrame = CFrame.new(Village.toWorld(s.slot, 380, 500, 4)) -- перед грядками, лицом к ферме
+	end
+end
+
+local function onPlayerAdded(player: Player)
+	local slot = Village.claim(player)
+	if not slot then
+		player:Kick("На этом сервере все участки заняты. Зайди на другой сервер.")
+		return
+	end
+	local f = loadFarm(player)
+	Shop.attach(f)
+	if not player.Parent then
+		Village.release(player) -- ушёл, пока ферма загружалась
+		return
+	end
+	local s: Session = {
+		player = player,
+		slot = slot,
+		farm = f,
+		-- Клик по чужой ферме пока ничего не делает: гости — следующий шаг.
+		world = FarmWorld.new(slot, slotModels[slot].model, function(who, kind, id)
+			if who == player then
+				onWorldClick(who, kind, id)
+			end
+		end),
+		sign = slotModels[slot].sign,
+		slotModel = slotModels[slot].model,
+		crop = "wheat",
+		tool = "auto",
+		log = {},
+		budget = 20,
+		sendIn = 0,
+	}
+	sessions[player] = s
+	updateSign(s)
+	s.world:update(f)
+	if player.Character then
+		task.spawn(placeCharacter, s, player.Character)
+	end
+	player.CharacterAdded:Connect(function(ch)
+		placeCharacter(s, ch)
+	end)
+end
+
+local function onPlayerRemoving(player: Player)
+	local s = sessions[player]
+	if not s then
+		Village.release(player)
+		return
+	end
+	saveFarm(s)
+	s.world:destroy()
+	s.sign.Text = "Свободный участок"
+	sessions[player] = nil
+	Village.release(player)
+end
+
+commandRemote.OnServerEvent:Connect(onCommand)
+Players.PlayerAdded:Connect(onPlayerAdded)
+Players.PlayerRemoving:Connect(onPlayerRemoving)
+for _, p in Players:GetPlayers() do
+	task.spawn(onPlayerAdded, p)
+end
+
+game:BindToClose(function()
+	for _, s in sessions do
+		saveFarm(s)
+	end
+end)
+
+-- ---------- Время ----------
+-- Ровные шаги по 250 мс, как в вебе: одинаковые правила и одинаковые числа.
+
+local acc = 0
+local saveIn = 60
+RunService.Heartbeat:Connect(function(dt)
+	acc += math.min(dt, 1)
+	local stepSec = Config.FARM.stepMs / 1000
+	local stepped = false
+	while acc >= stepSec do
+		acc -= stepSec
+		stepped = true
+		for _, s in sessions do
+			Farm.tick(s.farm, Config.FARM.stepMs)
+			s.budget = math.min(20, s.budget + 2)
+		end
+	end
+	saveIn -= dt
+	for _, s in sessions do
+		if stepped then
+			collectLog(s)
+			s.world:update(s.farm)
+		end
+		s.sendIn -= dt
+		if s.sendIn <= 0 then
+			sendState(s)
+		end
+		if saveIn <= 0 then
+			task.spawn(saveFarm, s)
+		end
+	end
+	if saveIn <= 0 then
+		saveIn = 60
+	end
+end)
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="18">
+        <Properties>
+          <string name="Name">FarmWorld</string>
+          <string name="Source"><![CDATA[--!strict
+-- 3D-вид одной фермы на участке: грядки, постройки, противень. Только рисует состояние
+-- и ловит клики (ClickDetector работает и мышью, и пальцем на телефоне).
+-- Графика серая и блочная нарочно: это проверка механики, не внешнего вида.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local FarmPkg = ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Farm")
+local Config = require(FarmPkg:WaitForChild("Config"))
+local Farm = require(FarmPkg:WaitForChild("Farm"))
+local Village = require(script.Parent:WaitForChild("Village"))
+local PlantModels = require(script.Parent:WaitForChild("PlantModels"))
+
+local ITEMS = Config.ITEMS
+local BUILDINGS = Config.BUILDINGS
+local S = Village.SCALE
+
+-- Лего-вид как в Grow a Garden: пластик с пупырышками (Studs), сочные цвета.
+local SOIL = {
+	empty = Color3.fromRGB(170, 100, 56),
+	wet = Color3.fromRGB(112, 62, 34),
+	dry = Color3.fromRGB(200, 146, 92),
+}
+local GRASS = Color3.fromRGB(88, 176, 62)
+local WOOD = Color3.fromRGB(112, 72, 44)
+local STUDS = Enum.SurfaceType.Studs
+
+local BUILDING_LOOK = {
+	storage = { size = Vector3.new(12, 9, 12), color = Color3.fromRGB(150, 90, 50) },
+	well = { size = Vector3.new(6, 4, 6), color = Color3.fromRGB(120, 120, 140) },
+	compost = { size = Vector3.new(7, 4, 7), color = Color3.fromRGB(90, 120, 60) },
+	coop = { size = Vector3.new(10, 6, 9), color = Color3.fromRGB(200, 170, 120) },
+	mill = { size = Vector3.new(8, 12, 8), color = Color3.fromRGB(220, 220, 200) },
+	bakery = { size = Vector3.new(10, 7, 9), color = Color3.fromRGB(210, 140, 90) },
+	kitchen = { size = Vector3.new(10, 7, 9), color = Color3.fromRGB(200, 200, 210) },
+}
+
+local function mmss(ms: number): string
+	local s = math.max(0, math.ceil(ms / 1000))
+	return string.format("%d:%02d", s // 60, s % 60)
+end
+
+local function part(props: { [string]: any }): Part
+	local p = Instance.new("Part")
+	p.Anchored = true
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	for k, v in props do
+		(p :: any)[k] = v
+	end
+	return p
+end
+
+-- size — в стадах (а не пикселях): издалека подпись мельче и не налезает на соседние.
+local function label(parent: Instance, offsetY: number, size: Vector2?, maxDistance: number?): TextLabel
+	local sz = size or Vector2.new(8, 1.8)
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.fromScale(sz.X, sz.Y)
+	gui.StudsOffset = Vector3.new(0, offsetY, 0)
+	gui.MaxDistance = maxDistance or 160
+	gui.LightInfluence = 0
+	gui.Parent = parent
+	local t = Instance.new("TextLabel")
+	t.Size = UDim2.fromScale(1, 1)
+	t.BackgroundTransparency = 0.35
+	t.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+	t.TextColor3 = Color3.new(1, 1, 1)
+	t.TextScaled = true
+	t.Font = Enum.Font.GothamBold
+	t.Parent = gui
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0.25, 0)
+	corner.Parent = t
+	return t
+end
+
+local function clickable(p: Instance, onClick: (Player) -> ())
+	local cd = Instance.new("ClickDetector")
+	cd.MaxActivationDistance = 80
+	cd.Parent = p
+	cd.MouseClick:Connect(onClick)
+end
+
+export type World = {
+	update: (self: World, f: Farm.FarmState) -> (),
+	destroy: (self: World) -> (),
+}
+
+local FarmWorld = {}
+
+-- Пустой участок деревни: земля и табличка. Строится для всех участков при старте сервера.
+function FarmWorld.buildSlot(slot: number, parent: Instance): (Model, TextLabel)
+	local model = Instance.new("Model")
+	model.Name = "Slot" .. slot
+	local w, h = Config.FARM.world.width * S + 8, Config.FARM.world.height * S + 8
+	local center = Village.center(slot)
+	local ground = part({ Name = "Ground", Size = Vector3.new(w, 1, h), Position = center - Vector3.new(0, 0.5, 0), Color = GRASS, Material = Enum.Material.Plastic, TopSurface = STUDS, Parent = model })
+
+	-- Забор из столбиков и двух жердей, спереди проход (как участки в Grow a Garden).
+	local fence = Instance.new("Model")
+	fence.Name = "Fence"
+	fence.Parent = model
+	local function rail(a: Vector3, b: Vector3)
+		local mid, len = (a + b) / 2, (b - a).Magnitude
+		for _, y in { 1.2, 2.4 } do
+			part({ Size = Vector3.new(0.4, 0.4, len), CFrame = CFrame.lookAt(mid + Vector3.new(0, y, 0), b + Vector3.new(0, y, 0)), Color = WOOD, Material = Enum.Material.Plastic, Parent = fence })
+		end
+		local n = math.max(1, math.floor(len / 6))
+		for i = 0, n do
+			local pos = a:Lerp(b, i / n)
+			part({ Size = Vector3.new(0.8, 3.2, 0.8), Position = pos + Vector3.new(0, 1.6, 0), Color = WOOD, Material = Enum.Material.Plastic, TopSurface = STUDS, Parent = fence })
+		end
+	end
+	local hw, hh = w / 2 - 0.5, h / 2 - 0.5
+	local c0 = center
+	local gap = 6
+	rail(c0 + Vector3.new(-hw, 0, -hh), c0 + Vector3.new(hw, 0, -hh))
+	rail(c0 + Vector3.new(-hw, 0, -hh), c0 + Vector3.new(-hw, 0, hh))
+	rail(c0 + Vector3.new(hw, 0, -hh), c0 + Vector3.new(hw, 0, hh))
+	rail(c0 + Vector3.new(-hw, 0, hh), c0 + Vector3.new(-gap, 0, hh))
+	rail(c0 + Vector3.new(gap, 0, hh), c0 + Vector3.new(hw, 0, hh))
+	-- Дорожка от прохода к грядкам.
+	part({ Name = "Path", Size = Vector3.new(2 * gap - 2, 0.1, hh), Position = c0 + Vector3.new(0, 0.05, hh / 2), Color = Color3.fromRGB(226, 200, 150), Material = Enum.Material.Plastic, TopSurface = STUDS, Parent = model })
+	local sign = part({ Name = "Sign", Size = Vector3.new(6, 4, 0.5), Position = Village.toWorld(slot, 380, 560, 2), Color = WOOD, Material = Enum.Material.Plastic, TopSurface = STUDS, Parent = model })
+	local text = label(sign, 4, Vector2.new(24, 2.6))
+	text.Text = "Свободный участок"
+	model.PrimaryPart = ground
+	model.Parent = parent
+	return model, text
+end
+
+-- Ферма игрока на участке slot. onClick(кто кликнул, kind, id): kind = "plot" | "building" | "tray".
+function FarmWorld.new(slot: number, parent: Instance, onClick: (Player, string, string) -> ()): World
+	local folder = Instance.new("Folder")
+	folder.Name = "Farm"
+	folder.Parent = parent
+
+	local plotViews: { [string]: { soil: Part, plant: Model?, plantKey: string, text: TextLabel, key: string } } = {}
+	local buildingViews: { [string]: { body: Part, text: TextLabel, key: string } } = {}
+	local tray: Part? = nil
+	local fieldsSign: Part? = nil
+
+	local function plotView(p: Farm.Plot)
+		local v = plotViews[p.id]
+		if v then
+			return v
+		end
+		local pos = Village.toWorld(slot, p.x, p.y)
+		local size = 70 * S
+		local soil = part({ Name = p.id, Size = Vector3.new(size, 0.6, size), Position = pos + Vector3.new(0, 0.3, 0), Material = Enum.Material.Plastic, TopSurface = STUDS, Color = SOIL.empty, Parent = folder })
+		-- Тёмный бортик вокруг грядки (как в Grow a Garden и Hay Day).
+		for _, side in { Vector3.new(0, 0, 1), Vector3.new(0, 0, -1), Vector3.new(1, 0, 0), Vector3.new(-1, 0, 0) } do
+			local along = if side.X ~= 0 then Vector3.new(0.4, 0.9, size + 0.8) else Vector3.new(size + 0.8, 0.9, 0.4)
+			part({ Name = "Border", Size = along, Position = pos + side * (size / 2 + 0.2) + Vector3.new(0, 0.45, 0), Color = Color3.fromRGB(80, 44, 24), Material = Enum.Material.Plastic, TopSurface = STUDS, Parent = soil })
+		end
+		-- Подпись видна только вблизи, как цена над растением в Grow a Garden.
+		local text = label(soil, 4.2, Vector2.new(7, 1.6), 45)
+		clickable(soil, function(who) onClick(who, "plot", p.id) end)
+		v = { soil = soil, plant = nil :: Model?, plantKey = "", text = text, key = "" }
+		plotViews[p.id] = v
+		return v
+	end
+
+	local function updatePlot(p: Farm.Plot)
+		local v = plotView(p)
+		local growing = Farm.isGrowing(p)
+		local crop = p.crop
+		local ripeIn = if growing then Farm.ripeInMs(p) else 0
+		-- Перерисовываем, только если что-то видимое поменялось.
+		local key = table.concat({ p.stage, crop or "", tostring(p.water > 0), tostring(p.fertilized), tostring(math.round(p.health * 100)), tostring(math.ceil(ripeIn / 1000)) }, "|")
+		if key == v.key then
+			return
+		end
+		v.key = key
+
+		v.soil.Color = if not growing then SOIL.empty elseif p.water > 0 then SOIL.wet else SOIL.dry
+
+		-- Растение пересобирается при смене стадии и каждые 10% роста: растёт на глазах.
+		local plantKey = if crop and p.stage ~= "empty" then `{crop}|{p.stage}|{math.floor(p.growth * 10)}` else ""
+		if plantKey ~= v.plantKey then
+			v.plantKey = plantKey
+			if v.plant then
+				v.plant:Destroy()
+				v.plant = nil
+			end
+			if plantKey ~= "" then
+				local base = CFrame.new(v.soil.Position + Vector3.new(0, 0.3, 0))
+				local m = PlantModels.build(crop :: string, p.stage, p.growth, base)
+				clickable(m, function(who) onClick(who, "plot", p.id) end)
+				m.Parent = v.soil
+				v.plant = m
+			end
+		end
+
+		local icon = if crop then ITEMS[crop].icon else ""
+		local extra = (if p.fertilized then " ✨" else "") .. (if p.health < 1 then ` ⚠{math.round(p.health * 100)}%` else "")
+		if p.stage == "empty" then
+			v.text.Text = "＋"
+		elseif growing then
+			v.text.Text = `{icon} {mmss(ripeIn)}` .. (if p.water <= 0 then " 💧?" else "") .. extra
+		elseif p.stage == "ripe" then
+			v.text.Text = `{icon} собрать!` .. extra
+		else
+			v.text.Text = "🤢 убрать"
+		end
+	end
+
+	local function buildingView(id: string)
+		local v = buildingViews[id]
+		if v then
+			return v
+		end
+		local info = BUILDINGS[id]
+		local look = BUILDING_LOOK[id]
+		local body = part({ Name = id, Size = look.size, Position = Village.toWorld(slot, info.x, info.y, look.size.Y / 2), Color = look.color, Material = Enum.Material.Plastic, TopSurface = STUDS, Parent = folder })
+		local text = label(body, look.size.Y / 2 + 1.8, Vector2.new(11, 2), 90)
+		clickable(body, function(who) onClick(who, "building", id) end)
+		v = { body = body, text = text, key = "" }
+		buildingViews[id] = v
+		return v
+	end
+
+	local function updateBuilding(f: Farm.FarmState, id: string)
+		local v = buildingView(id)
+		local info = BUILDINGS[id]
+		local lvl = f.buildings[id]
+		local con = f.construction
+		local text
+		if con and con.building == id then
+			text = `🔨 {info.name} {mmss(con.remainingMs)}`
+		elseif lvl == 0 then
+			text = if f.level < info.level then `🔒 {info.name} (ур. {info.level})` else `🔨 {info.name}: {info.cost[1]} 💰`
+		else
+			text = `{info.icon} {info.name}` .. (if info.maxLevel > 1 then ` {lvl}` else "")
+			local t: Farm.Timer? = if id == "mill" then f.mill elseif id == "bakery" then f.bakery elseif id == "kitchen" then f.kitchen else nil
+			if t then
+				text ..= ` · {mmss(t.doneAtMs - f.tMs)}`
+			end
+			if id == "storage" then
+				text ..= ` · {Farm.storedCount(f)}/{Farm.storageCap(f)}`
+			end
+			if id == "coop" and f.tMs < f.coop.scaredUntilMs then
+				text ..= " · 😱"
+			end
+		end
+		local key = text .. tostring(lvl)
+		if key == v.key then
+			return
+		end
+		v.key = key
+		v.text.Text = text
+		v.body.Transparency = if lvl > 0 then 0 else 0.75
+	end
+
+	local self = {} :: any
+
+	function self.update(_: World, f: Farm.FarmState)
+		for _, p in f.plots do
+			updatePlot(p)
+		end
+		for id in BUILDING_LOOK do
+			updateBuilding(f, id)
+		end
+
+		-- Противень у пекарни: горячий хлеб остывает, его можно забрать сразу.
+		if f.tray then
+			if not tray then
+				local x, y = Farm.trayPos()
+				local t = part({ Name = "Tray", Size = Vector3.new(4, 1, 3), Position = Village.toWorld(slot, x, y, 0.5), Color = Color3.fromRGB(180, 180, 180), Material = Enum.Material.Metal, Parent = folder })
+				label(t, 2.5, Vector2.new(6, 1.6))
+				clickable(t, function(who) onClick(who, "tray", "tray") end)
+				tray = t
+			end
+			local lbl = (tray :: Part):FindFirstChildOfClass("BillboardGui"):FindFirstChildOfClass("TextLabel") :: TextLabel
+			lbl.Text = `🍞×{f.tray.bread} {mmss(f.tray.coolUntilMs - f.tMs)}`
+		elseif tray then
+			tray:Destroy()
+			tray = nil
+		end
+
+		-- Стройка новых грядок: табличка под сеткой грядок.
+		local con = f.construction
+		if con and con.building == "fields" then
+			if not fieldsSign then
+				local g = Config.FARM.plotGrid
+				local s = part({ Name = "FieldsWork", Size = Vector3.new(6, 2, 1), Position = Village.toWorld(slot, g.x0 + g.step, g.y0 + math.ceil(#f.plots / g.cols) * g.step, 1), Color = Color3.fromRGB(200, 170, 60), Parent = folder })
+				label(s, 2.5, Vector2.new(10, 1.8))
+				fieldsSign = s
+			end
+			local lbl = (fieldsSign :: Part):FindFirstChildOfClass("BillboardGui"):FindFirstChildOfClass("TextLabel") :: TextLabel
+			lbl.Text = `🔨 Новые грядки {mmss(con.remainingMs)}`
+		elseif fieldsSign then
+			fieldsSign:Destroy()
+			fieldsSign = nil
+		end
+	end
+
+	function self.destroy(_: World)
+		folder:Destroy()
+	end
+
+	return self :: World
+end
+
+return FarmWorld
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="19">
+        <Properties>
+          <string name="Name">PlantModels</string>
+          <string name="Source"><![CDATA[--!strict
+-- Растения из простых деталей, как в Grow a Garden: кустик растёт на глазах,
+-- у спелого видно плоды. Без покупных моделей: только Part и их формы.
+-- build(crop, stage, growth, base) → Model; base — центр верха грядки.
+
+local PlantModels = {}
+
+local C = {
+	stem = Color3.fromRGB(50, 150, 50),
+	leaf = Color3.fromRGB(60, 180, 60),
+	leafDark = Color3.fromRGB(30, 120, 50),
+	sprout = Color3.fromRGB(150, 220, 110),
+	wheatGreen = Color3.fromRGB(150, 196, 90),
+	wheatGold = Color3.fromRGB(250, 200, 40),
+	carrot = Color3.fromRGB(245, 130, 40),
+	berry = Color3.fromRGB(225, 40, 60),
+	berryUnripe = Color3.fromRGB(235, 235, 200),
+	pumpkin = Color3.fromRGB(245, 140, 30),
+	pumpkinGreen = Color3.fromRGB(120, 160, 70),
+	rotten = Color3.fromRGB(110, 95, 60),
+	rottenLeaf = Color3.fromRGB(120, 110, 70),
+}
+
+-- Растения крупнее грядочной клетки не выходят, но видны с середины участка (v0.5: ×1.5).
+local K = 1.5
+local origin = CFrame.new()
+
+local function piece(model: Model, size: Vector3, cf: CFrame, color: Color3, shape: Enum.PartType?): Part
+	-- Масштаб вокруг основания растения: и размер, и смещение деталей.
+	local rel = origin:ToObjectSpace(cf)
+	cf = origin * (CFrame.new(rel.Position * K) * rel.Rotation)
+	size *= K
+	local p = Instance.new("Part")
+	p.Anchored = true
+	p.CanCollide = false
+	p.CastShadow = true
+	-- Лего-пластик: у кубиков сверху пупырышки, как в Grow a Garden.
+	p.Material = Enum.Material.Plastic
+	p.TopSurface = if shape == nil then Enum.SurfaceType.Studs else Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.Shape = shape or Enum.PartType.Block
+	p.Size = size
+	p.CFrame = cf
+	p.Color = color
+	p.Parent = model
+	return p
+end
+
+local BALL = Enum.PartType.Ball
+local CYL = Enum.PartType.Cylinder
+
+-- Листик: плоская пластинка, наклонённая наружу под углом.
+local function leaf(m: Model, base: CFrame, angle: number, len: number, color: Color3)
+	local cf = base * CFrame.Angles(0, angle, 0) * CFrame.new(0, len * 0.35, -len * 0.3) * CFrame.Angles(math.rad(-35), 0, 0)
+	piece(m, Vector3.new(len * 0.45, 0.08, len), cf, color)
+end
+
+-- Стебель вертикально: цилиндр в Roblox лежит вдоль X, поворачиваем.
+local function stem(m: Model, base: CFrame, h: number, w: number, color: Color3, tilt: number?, turn: number?)
+	local cf = base * CFrame.Angles(0, turn or 0, tilt or 0) * CFrame.new(0, h / 2, 0) * CFrame.Angles(0, 0, math.rad(90))
+	piece(m, Vector3.new(h, w, w), cf, color, CYL)
+end
+
+local function sprout(m: Model, base: CFrame, s: number)
+	stem(m, base, 0.8 * s, 0.18, C.stem)
+	leaf(m, base * CFrame.new(0, 0.6 * s, 0), 0, 0.7 * s, C.sprout)
+	leaf(m, base * CFrame.new(0, 0.6 * s, 0), math.pi, 0.7 * s, C.sprout)
+end
+
+local BUILD: { [string]: (Model, CFrame, string, number) -> () } = {}
+
+-- Пшеница: пучок колосьев, зелёных пока растут, золотых когда спелые.
+BUILD.wheat = function(m, base, stage, s)
+	local ripe = stage == "ripe"
+	local color = if ripe then C.wheatGold else C.wheatGreen
+	local h = (if ripe then 3.4 else 1.2 + 2.2 * s)
+	for i = 0, 6 do
+		local a = i / 7 * math.pi * 2
+		local r = if i == 0 then 0 else 1.1
+		local b = base * CFrame.new(math.cos(a) * r, 0, math.sin(a) * r)
+		local tilt = math.rad(if i == 0 then 0 else 8)
+		stem(m, b, h, 0.14, color, tilt, a)
+		if ripe or s > 0.7 then
+			local top = b * CFrame.Angles(0, a, tilt) * CFrame.new(0, h + 0.35, 0)
+			piece(m, Vector3.new(0.35, 0.8, 0.35), top, color)
+		end
+	end
+end
+
+-- Морковь: ботва пучком, у спелой из земли торчит оранжевый корень.
+BUILD.carrot = function(m, base, stage, s)
+	local ripe = stage == "ripe"
+	local len = if ripe then 2 else 0.9 + 1.2 * s
+	for i = 0, 4 do
+		leaf(m, base * CFrame.new(0, 0.2, 0), i / 5 * math.pi * 2, len, if i % 2 == 0 then C.leaf else C.leafDark)
+	end
+	stem(m, base, len * 0.8, 0.16, C.stem)
+	if ripe then
+		piece(m, Vector3.new(1.1, 1.3, 1.1), base * CFrame.new(0, 0.1, 0), C.carrot, BALL)
+	end
+end
+
+-- Клубника: круглый кустик, ягоды сначала белые, потом красные.
+BUILD.strawberry = function(m, base, stage, s)
+	local ripe = stage == "ripe"
+	local r = if ripe then 2.2 else 1 + 1.2 * s
+	piece(m, Vector3.new(r * 1.4, r * 0.8, r * 1.4), base * CFrame.new(0, r * 0.35, 0), C.leaf, BALL)
+	piece(m, Vector3.new(r, r * 0.7, r), base * CFrame.new(0.3, r * 0.6, -0.2), C.leafDark, BALL)
+	if ripe or s > 0.6 then
+		for i = 0, 4 do
+			local a = i / 5 * math.pi * 2 + 0.4
+			local pos = CFrame.new(math.cos(a) * r * 0.6, r * 0.25, math.sin(a) * r * 0.6)
+			piece(m, Vector3.new(0.55, 0.65, 0.55), base * pos, if ripe then C.berry else C.berryUnripe, BALL)
+		end
+	end
+end
+
+-- Тыква: плети с широкими листьями, плод растёт из зелёного в оранжевый.
+BUILD.pumpkin = function(m, base, stage, s)
+	local ripe = stage == "ripe"
+	for i = 0, 3 do
+		local a = i / 4 * math.pi * 2 + 0.6
+		leaf(m, base * CFrame.new(0, 0.1, 0), a, 1.6 + 1.2 * s, C.leaf)
+	end
+	local d = if ripe then 3.2 else 0.8 + 1.6 * s
+	local color = if ripe then C.pumpkin else C.pumpkinGreen
+	local center = base * CFrame.new(0, d * 0.4, 0)
+	-- Три шара рядом — тыква «с дольками».
+	piece(m, Vector3.new(d, d * 0.8, d * 0.85), center, color, BALL)
+	piece(m, Vector3.new(d * 0.7, d * 0.75, d * 0.95), center * CFrame.new(-d * 0.22, 0, 0), color, BALL)
+	piece(m, Vector3.new(d * 0.7, d * 0.75, d * 0.95), center * CFrame.new(d * 0.22, 0, 0), color, BALL)
+	stem(m, center * CFrame.new(0, d * 0.35, 0), 0.5, 0.25, C.stem)
+end
+
+-- Гнилое: бурое, поникшее, чуть приплюснутое.
+local function rotten(m: Model, base: CFrame)
+	for i = 0, 3 do
+		local a = i / 4 * math.pi * 2
+		local cf = base * CFrame.Angles(0, a, 0) * CFrame.new(0, 0.15, -0.8) * CFrame.Angles(math.rad(-75), 0, 0)
+		piece(m, Vector3.new(0.6, 0.08, 1.6), cf, C.rottenLeaf)
+	end
+	piece(m, Vector3.new(1.6, 0.6, 1.4), base * CFrame.new(0, 0.2, 0), C.rotten, BALL)
+end
+
+-- growth 0..1 — насколько выросло (у спелого и гнилого не важно).
+function PlantModels.build(crop: string, stage: string, growth: number, base: CFrame): Model
+	local m = Instance.new("Model")
+	m.Name = "Plant"
+	origin = base
+	if stage == "seed" then
+		sprout(m, base, 0.6 + growth)
+	elseif stage == "rotten" then
+		rotten(m, base)
+	elseif BUILD[crop] then
+		BUILD[crop](m, base, stage, math.clamp(growth, 0, 1))
+	end
+	if stage == "ripe" then
+		-- Искорки над спелым: видно издалека, что пора собирать.
+		local holder = piece(m, Vector3.new(2, 0.2, 2), base * CFrame.new(0, 2.5, 0), C.leaf)
+		holder.Transparency = 1
+		local fx = Instance.new("ParticleEmitter")
+		fx.Rate = 4
+		fx.Lifetime = NumberRange.new(0.8, 1.4)
+		fx.Speed = NumberRange.new(0.5, 1.2)
+		fx.Size = NumberSequence.new(0.25, 0)
+		fx.LightEmission = 1
+		fx.Color = ColorSequence.new(Color3.fromRGB(255, 240, 150))
+		fx.Parent = holder
+	end
+	return m
+end
+
+return PlantModels
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="20">
+        <Properties>
+          <string name="Name">Sky</string>
+          <string name="Source"><![CDATA[--!strict
+-- Мультяшные облака по кругу вдали, как небо в Grow a Garden.
+-- Картинку неба в Roblox надо загружать на сайт, поэтому облака собраны из белых шаров.
+
+local Sky = {}
+
+local function rng(seed: number): () -> number
+	-- Свой простой генератор: облака всегда на тех же местах.
+	local x = seed
+	return function()
+		x = (x * 1103515245 + 12345) % 2147483648
+		return x / 2147483648
+	end
+end
+
+function Sky.build(parent: Instance)
+	local folder = Instance.new("Folder")
+	folder.Name = "Clouds"
+	local rand = rng(7)
+	local COUNT = 18
+	for i = 1, COUNT do
+		local a = (i + rand() * 0.6) / COUNT * math.pi * 2
+		local dist = 420 + rand() * 160
+		local center = Vector3.new(math.cos(a) * dist, 70 + rand() * 70, math.sin(a) * dist)
+		local cloud = Instance.new("Model")
+		cloud.Name = "Cloud"
+		local size = 40 + rand() * 40
+		-- Пышка: широкое основание и несколько шаров сверху.
+		local puffs = 4 + math.floor(rand() * 3)
+		for j = 1, puffs do
+			local p = Instance.new("Part")
+			p.Shape = Enum.PartType.Ball
+			p.Anchored = true
+			p.CanCollide = false
+			p.CanQuery = false
+			p.CanTouch = false
+			p.CastShadow = false
+			p.Material = Enum.Material.SmoothPlastic
+			p.Color = if j == 1 then Color3.fromRGB(226, 238, 248) else Color3.fromRGB(250, 252, 255)
+			local d = size * (0.6 + rand() * 0.5)
+			p.Size = Vector3.new(d, d, d)
+			local side = (j - (puffs + 1) / 2) * size * 0.45
+			local tangent = Vector3.new(-math.sin(a), 0, math.cos(a))
+			p.Position = center + tangent * side + Vector3.new(0, rand() * size * 0.25, 0)
+			p.Parent = cloud
+		end
+		cloud.Parent = folder
+	end
+	folder.Parent = parent
+	return folder
+end
+
+return Sky
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="21">
+        <Properties>
+          <string name="Name">Village</string>
+          <string name="Source"><![CDATA[--!strict
+-- Сервер-деревня: на одном сервере 4–8 участков, у каждого игрока свой.
+-- В этом шаге участки только заложены: игрок получает свободный участок и свою ферму,
+-- общей площади, соседей и гостей ещё нет.
+
+local Village = {}
+
+Village.SLOTS = 6 -- можно 4–8; столько же мест на сервере (Players.MaxPlayers ставится в Studio)
+Village.SPACING = 120 -- стадов между центрами участков
+Village.COLS = 3
+Village.SCALE = 0.12 -- 1 пиксель веб-фермы = 0,12 стада (ферма 760×540 → 91×65 стадов)
+
+local owners: { [number]: Player } = {}
+
+-- Центр участка i (1..SLOTS): два ряда по три вокруг площади в центре мира.
+function Village.center(i: number): Vector3
+	local col = (i - 1) % Village.COLS
+	local row = math.floor((i - 1) / Village.COLS)
+	local x = (col - (Village.COLS - 1) / 2) * Village.SPACING
+	local z = (if row == 0 then -1 else 1) * Village.SPACING * 0.65
+	return Vector3.new(x, 0, z)
+end
+
+-- Точка фермы (x, y в пикселях веба) → мир. Ось y веба идёт вдоль Z.
+function Village.toWorld(i: number, x: number, y: number, height: number?): Vector3
+	local c = Village.center(i)
+	return c + Vector3.new((x - 380) * Village.SCALE, height or 0, (y - 270) * Village.SCALE)
+end
+
+function Village.claim(player: Player): number?
+	for i = 1, Village.SLOTS do
+		if not owners[i] then
+			owners[i] = player
+			return i
+		end
+	end
+	return nil
+end
+
+function Village.release(player: Player)
+	for i = 1, Village.SLOTS do
+		if owners[i] == player then
+			owners[i] = nil
+		end
+	end
+end
+
+function Village.owner(i: number): Player?
+	return owners[i]
+end
+
+return Village
+]]></string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="StarterPlayer" referent="22">
+    <Properties>
+      <string name="Name">StarterPlayer</string>
+    </Properties>
+    <Item class="StarterPlayerScripts" referent="23">
+      <Properties>
+        <string name="Name">StarterPlayerScripts</string>
+      </Properties>
+      <Item class="Folder" referent="24">
+        <Properties>
+          <string name="Name">Client</string>
+        </Properties>
+        <Item class="LocalScript" referent="25">
+          <Properties>
+            <string name="Name">FarmUI</string>
+            <string name="Source"><![CDATA[--!strict
+-- Экран игрока. Только рисует снимок с сервера и шлёт просьбы; правил игры здесь нет.
+-- Грядки и постройки в мире кликаются напрямую (ClickDetector на сервере).
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local remotes = ReplicatedStorage:WaitForChild("FarmRemotes")
+local Command = remotes:WaitForChild("Command") :: RemoteEvent
+local State = remotes:WaitForChild("State") :: RemoteEvent
+local Open = remotes:WaitForChild("Open") :: RemoteEvent
+
+local function send(c: { [string]: any })
+	Command:FireServer(c)
+end
+
+local function mmss(ms: number): string
+	local s = math.max(0, math.ceil(ms / 1000))
+	return string.format("%d:%02d", s // 60, s % 60)
+end
+
+-- ---------- Маленький помощник для интерфейса ----------
+
+-- Лего-стиль как в Grow a Garden: яркие кнопки с толстой тёмной обводкой и пупырышками,
+-- круглый жирный шрифт, белые надписи с обводкой, светлые панели в коричневой рамке.
+local COLORS = {
+	panel = Color3.fromRGB(255, 248, 226),
+	frame = Color3.fromRGB(110, 70, 40),
+	ink = Color3.fromRGB(60, 45, 30),
+	button = Color3.fromRGB(70, 190, 70),
+	buttonOff = Color3.fromRGB(170, 165, 155),
+	accent = Color3.fromRGB(250, 196, 40),
+	wood = Color3.fromRGB(150, 98, 58),
+	bar = Color3.fromRGB(150, 98, 58),
+}
+local FONT = Enum.Font.FredokaOne
+
+local function make(class: string, props: { [string]: any }, children: { Instance }?): any
+	local inst = Instance.new(class)
+	for k, v in props do
+		if k ~= "Parent" then
+			(inst :: any)[k] = v
+		end
+	end
+	for _, c in children or {} do
+		c.Parent = inst
+	end
+	if props.Parent then
+		inst.Parent = props.Parent
+	end
+	return inst
+end
+
+local function corner(r: number?): UICorner
+	return make("UICorner", { CornerRadius = UDim.new(0, r or 8) })
+end
+
+local function darker(c: Color3, k: number): Color3
+	return Color3.new(c.R * k, c.G * k, c.B * k)
+end
+
+-- Толстая тёмная обводка того же цвета, что и кнопка.
+local function rim(color: Color3, thickness: number?): UIStroke
+	return make("UIStroke", { Color = darker(color, 0.55), Thickness = thickness or 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
+end
+
+-- Пупырышки: сетка светлых кружков под надписью.
+local function studs(parent: GuiObject, color: Color3)
+	local holder = make("Frame", { Name = "Studs", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ClipsDescendants = true, ZIndex = 1, Parent = parent }, {
+		make("UIGridLayout", { CellSize = UDim2.fromOffset(9, 9), CellPadding = UDim2.fromOffset(7, 7), HorizontalAlignment = Enum.HorizontalAlignment.Center, VerticalAlignment = Enum.VerticalAlignment.Center }),
+	})
+	local light = color:Lerp(Color3.new(1, 1, 1), 0.35)
+	for _ = 1, 24 do
+		make("Frame", { BackgroundColor3 = light, BackgroundTransparency = 0.45, BorderSizePixel = 0, ZIndex = 1, Parent = holder }, { make("UICorner", { CornerRadius = UDim.new(1, 0) }) })
+	end
+end
+
+local function textLabel(props: { [string]: any }): TextLabel
+	local base = { BackgroundTransparency = 1, TextColor3 = COLORS.ink, Font = FONT, TextSize = 16, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = true }
+	for k, v in props do
+		base[k] = v
+	end
+	return make("TextLabel", base)
+end
+
+-- Кнопка: сам TextButton ловит нажатие и хранит текст, а видимая надпись — отдельная
+-- подпись Label поверх пупырышек (иначе пупырышки рисуются поверх текста).
+local function button(text: string, enabled: boolean, onClick: () -> (), props: { [string]: any }?): TextButton
+	local base = {
+		Text = text,
+		AutoButtonColor = enabled,
+		BackgroundColor3 = if enabled then COLORS.button else COLORS.buttonOff,
+		TextColor3 = Color3.new(1, 1, 1),
+		Font = FONT,
+		TextSize = 16,
+		Size = UDim2.new(0, 120, 0, 34),
+	}
+	for k, v in props or {} do
+		base[k] = v
+	end
+	local b = make("TextButton", base, { corner(10) })
+	local color = b.BackgroundColor3
+	rim(color).Parent = b
+	studs(b, color)
+	b.TextTransparency = 1
+	make("TextLabel", {
+		Name = "Label",
+		Size = UDim2.new(1, -6, 1, -4),
+		Position = UDim2.fromOffset(3, 2),
+		BackgroundTransparency = 1,
+		Text = b.Text,
+		Font = FONT,
+		TextSize = b.TextSize,
+		TextScaled = b.TextScaled,
+		TextWrapped = true,
+		TextColor3 = Color3.new(1, 1, 1),
+		TextStrokeColor3 = darker(color, 0.4),
+		TextStrokeTransparency = 0,
+		ZIndex = 2,
+		Parent = b,
+	})
+	if enabled then
+		b.Activated:Connect(onClick)
+	end
+	return b
+end
+
+-- ---------- Каркас экрана ----------
+
+local gui = make("ScreenGui", { Name = "FarmUI", ResetOnSpawn = false, IgnoreGuiInset = false, Parent = player:WaitForChild("PlayerGui") })
+
+-- Верхняя полоса: монеты, уровень, амбар, удобрение, стройка.
+local top = make("Frame", { Size = UDim2.new(1, -20, 0, 40), Position = UDim2.new(0, 10, 0, 6), BackgroundColor3 = COLORS.bar, Parent = gui }, { corner(12), rim(COLORS.bar) })
+studs(top, COLORS.bar)
+local topText = textLabel({ Size = UDim2.new(1, -20, 1, 0), Position = UDim2.new(0, 10, 0, 0), TextColor3 = Color3.new(1, 1, 1), TextStrokeTransparency = 0, TextStrokeColor3 = darker(COLORS.bar, 0.4), TextSize = 19, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd, ZIndex = 2, Parent = top })
+
+local hint = textLabel({ Size = UDim2.new(0, 420, 0, 34), Position = UDim2.new(0.5, -210, 0, 54), BackgroundTransparency = 0, BackgroundColor3 = COLORS.accent, TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = Color3.new(1, 1, 1), TextStrokeTransparency = 0, TextStrokeColor3 = darker(COLORS.accent, 0.4), Visible = false, Parent = gui })
+corner(12).Parent = hint
+rim(COLORS.accent).Parent = hint
+local hintUntil = 0
+
+-- Нижняя полоса: что сажать по клику, удобрить, полить всё, собрать всё.
+local tools = make("Frame", { Size = UDim2.new(0, 640, 0, 46), Position = UDim2.new(0.5, -320, 1, -56), BackgroundTransparency = 1, Parent = gui }, {
+	make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 6), HorizontalAlignment = Enum.HorizontalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }),
+})
+
+-- Вкладки справа и панель под ними.
+local TABS = {
+	{ id = "shop", title = "🌱 Лавка", color = Color3.fromRGB(70, 190, 70) },
+	{ id = "storage", title = "📦 Амбар", color = Color3.fromRGB(235, 140, 40) },
+	{ id = "orders", title = "📜 Заказы", color = Color3.fromRGB(60, 140, 225) },
+	{ id = "build", title = "🔨 Стройка", color = Color3.fromRGB(240, 186, 30) },
+	{ id = "workshop", title = "🏭 Цех", color = Color3.fromRGB(160, 90, 210) },
+	{ id = "log", title = "📒", color = Color3.fromRGB(150, 98, 58) },
+}
+local tabBar = make("Frame", { Size = UDim2.new(0, 330, 0, 44), Position = UDim2.new(1, -340, 0, 54), BackgroundTransparency = 1, Parent = gui }, {
+	make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 4), HorizontalAlignment = Enum.HorizontalAlignment.Right, SortOrder = Enum.SortOrder.LayoutOrder }),
+})
+local panel = make("ScrollingFrame", {
+	Size = UDim2.new(0, 330, 0.55, 0),
+	Position = UDim2.new(1, -340, 0, 94),
+	BackgroundColor3 = COLORS.panel,
+	BackgroundTransparency = 0,
+	ScrollBarThickness = 6,
+	AutomaticCanvasSize = Enum.AutomaticSize.Y,
+	CanvasSize = UDim2.new(),
+	Visible = false,
+	Parent = gui,
+}, {
+	corner(14),
+	make("UIStroke", { Color = COLORS.frame, Thickness = 4, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }),
+	make("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8) }),
+	make("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder }),
+})
+
+local narrowMode = false -- телефон: на вкладках только значки
+
+-- На узком экране (телефон) панель шире и ниже.
+local function fitToScreen()
+	local cam = workspace.CurrentCamera
+	local w = if cam then cam.ViewportSize.X else 1000
+	local narrow = w < 700
+	local pw = if narrow then math.floor(w - 20) else 450
+	narrowMode = narrow
+	panel.Size = UDim2.new(0, pw, if narrow then 0.45 else 0.55, 0)
+	panel.Position = UDim2.new(1, -pw - 10, 0, 104)
+	tabBar.Size = UDim2.new(0, pw, 0, 44)
+	tabBar.Position = UDim2.new(1, -pw - 10, 0, 54)
+	tools.Size = UDim2.new(0, math.min(640, w - 20), 0, 46)
+	tools.Position = UDim2.new(0.5, -math.min(640, w - 20) / 2, 1, -56)
+	hint.Size = UDim2.new(0, math.min(420, w - 20), 0, 34)
+	hint.Position = UDim2.new(0.5, -math.min(420, w - 20) / 2, 1, -100)
+end
+fitToScreen()
+if workspace.CurrentCamera then
+	workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(fitToScreen)
+end
+
+local openTab: string? = nil
+local snap: any = nil
+local logLines: { string } = {}
+
+-- Кнопки пересоздаются только когда что-то поменялось, иначе нажатие может «потеряться».
+-- Таймеры обновляются отдельно: подпись с таймером регистрируется через live().
+local liveLabels: { { label: TextLabel, fn: (any) -> string } } = {}
+local lastSignature = ""
+
+local function live(label: TextLabel, fn: (any) -> string)
+	label.Text = fn(snap)
+	table.insert(liveLabels, { label = label, fn = fn })
+end
+
+-- Снимок без таймеров и журнала: если он не изменился, кнопки перестраивать не нужно.
+local function signature(v: any): string
+	if type(v) ~= "table" then
+		return tostring(v)
+	end
+	local keys = {}
+	for k in v do
+		if k ~= "leftMs" and k ~= "secondsLeft" and k ~= "log" and k ~= "hint" then
+			table.insert(keys, tostring(k))
+		end
+	end
+	table.sort(keys)
+	local parts = {}
+	for _, k in keys do
+		local x = v[k]
+		if x == nil then
+			x = v[tonumber(k)]
+		end
+		table.insert(parts, k .. "=" .. signature(x))
+	end
+	return "{" .. table.concat(parts, ",") .. "}"
+end
+
+local render: () -> ()
+
+local function setTab(id: string?)
+	openTab = if openTab == id then nil else id
+	render()
+end
+
+local function row(parent: Instance, order: number, height: number?): Frame
+	return make("Frame", { Size = UDim2.new(1, 0, 0, height or 36), BackgroundTransparency = 1, LayoutOrder = order, Parent = parent })
+end
+
+local function itemsText(items): string
+	local parts = {}
+	for _, it in items do
+		table.insert(parts, `{it.icon}{it.n}` .. (if it.have < it.n then `({it.have})` else ""))
+	end
+	return table.concat(parts, " ")
+end
+
+-- ---------- Содержимое вкладок ----------
+
+local TAB_RENDER: { [string]: (any, Instance) -> () } = {}
+
+-- Лавка семян: запас общий для всех серверов и обновляется каждые 5 минут.
+TAB_RENDER.shop = function(s, p)
+	local shop = s.extra.shop
+	live(textLabel({ Size = UDim2.new(1, 0, 0, 22), Font = FONT, LayoutOrder = 0, Parent = p }), function(x)
+		return `Новый завоз через {mmss(x.extra.shop.secondsLeft * 1000)}`
+	end)
+	textLabel({ Text = "🌾 Пшеница всегда бесплатно. Остальные семена — в мешок, сажаются кликом по грядке.", TextSize = 13, Size = UDim2.new(1, 0, 0, 36), LayoutOrder = 1, Parent = p })
+	for i, c in s.crops do
+		if c.id ~= "wheat" then
+			local left = shop.left[c.id] or 0
+			local r = row(p, 1 + i, 48)
+			local text = if c.unlocked then `{c.icon} {c.name}: в мешке {shop.seeds[c.id] or 0}\nв лавке {left}` else `{c.icon} {c.name}: откроется на уровне {c.level}`
+			textLabel({ Text = text, TextSize = 14, Size = UDim2.new(1, -110, 1, 0), Parent = r })
+			local can = c.unlocked and left > 0 and s.coins >= c.cost
+			button(if left > 0 then `Купить {c.cost}💰` else "нет", can, function() send({ type = "buy_seed", crop = c.id }) end, { Size = UDim2.new(0, 104, 0, 44), Position = UDim2.new(1, -104, 0, 2), TextSize = 14, Parent = r })
+		end
+	end
+end
+
+TAB_RENDER.storage = function(s, p)
+	textLabel({ Text = `Амбар: {s.used}/{s.cap}. Удобрение: {s.fertilizer}/{s.fertCap}`, Size = UDim2.new(1, 0, 0, 22), Font = FONT, LayoutOrder = 0, Parent = p })
+	if #s.stock == 0 then
+		textLabel({ Text = "Пусто. Собери урожай с грядок.", Size = UDim2.new(1, 0, 0, 22), LayoutOrder = 1, Parent = p })
+	end
+	for i, it in s.stock do
+		local r = row(p, i)
+		textLabel({ Text = `{it.icon} {it.name} ×{it.n}`, Size = UDim2.new(1, -150, 1, 0), Parent = r })
+		button(`1 за {it.sell}💰`, true, function() send({ type = "sell", item = it.id, count = 1 }) end, { Size = UDim2.new(0, 70, 0, 30), Position = UDim2.new(1, -146, 0, 3), TextSize = 13, Parent = r })
+		button("все", true, function() send({ type = "sell", item = it.id, count = it.n }) end, { Size = UDim2.new(0, 70, 0, 30), Position = UDim2.new(1, -72, 0, 3), TextSize = 13, BackgroundColor3 = Color3.fromRGB(200, 140, 70), Parent = r })
+	end
+end
+
+TAB_RENDER.orders = function(s, p)
+	textLabel({ Text = "Заказ платит больше лавки и даёт опыт.", Size = UDim2.new(1, 0, 0, 22), LayoutOrder = 0, Parent = p })
+	for i, o in s.orders do
+		local r = row(p, i, 64)
+		textLabel({ Text = `{o.customer}: {itemsText(o.items)}\n+{o.coins}💰 +{o.xp}⭐`, Size = UDim2.new(1, -110, 1, 0), Parent = r })
+		button("Отдать", o.can, function() send({ type = "complete_order", orderId = o.id }) end, { Size = UDim2.new(0, 100, 0, 28), Position = UDim2.new(1, -100, 0, 2), TextSize = 14, Parent = r })
+		button("Другой", true, function() send({ type = "skip_order", orderId = o.id }) end, { Size = UDim2.new(0, 100, 0, 26), Position = UDim2.new(1, -100, 0, 34), TextSize = 13, BackgroundColor3 = Color3.fromRGB(150, 140, 120), Parent = r })
+	end
+end
+
+TAB_RENDER.build = function(s, p)
+	if s.construction then
+		live(textLabel({ Size = UDim2.new(1, 0, 0, 40), Font = FONT, LayoutOrder = 0, Parent = p }), function(x)
+			return if x.construction then `Идёт стройка: {x.construction.icon} {x.construction.name}, ещё {mmss(x.construction.leftMs)}` else "Стройка готова"
+		end)
+	end
+	for i, b in s.buildings do
+		local r = row(p, i, 62)
+		local lvl = if b.maxLevel > 1 then ` ур. {b.level}/{b.maxLevel}` elseif b.level > 0 then " ✓" else ""
+		textLabel({ Text = `{b.icon} {b.name}{lvl}\n{b.about}`, TextSize = 13, Size = UDim2.new(1, -110, 1, 0), Parent = r })
+		local label = if b.can then `{b.cost}💰` else (b.why or "")
+		button(label, b.can, function() send({ type = "build", building = b.id }) end, { Size = UDim2.new(0, 104, 0, 40), Position = UDim2.new(1, -104, 0, 10), TextSize = 12, TextWrapped = true, Parent = r })
+	end
+end
+
+TAB_RENDER.workshop = function(s, p)
+	local n = 0
+	-- text: строка или функция от снимка (для таймеров)
+	local function line(text: any, btn: string?, enabled: boolean?, cmd: { [string]: any }?)
+		n += 1
+		local r = row(p, n, 40)
+		local l = textLabel({ Size = UDim2.new(1, (if btn then -110 else 0), 1, 0), TextSize = 14, Parent = r })
+		if type(text) == "function" then
+			live(l, text)
+		else
+			l.Text = text
+		end
+		if btn then
+			button(btn, enabled == true, function() send(cmd :: any) end, { Size = UDim2.new(0, 104, 0, 32), Position = UDim2.new(1, -104, 0, 4), TextSize = 13, Parent = r })
+		end
+	end
+	if not (s.has.mill or s.has.bakery or s.has.kitchen or s.has.coop) then
+		line("Пока нечего: построй курятник, мельницу или кухню во вкладке «Стройка».")
+	end
+	if s.has.coop then
+		line("🐔 Курятник: яйцо раз в 50 с, ест пшеницу из амбара.")
+	end
+	if s.has.mill then
+		line(function(x) return if x.mill then `🌀 Мельница: мука через {mmss(x.mill.leftMs)}` else "🌀 Мельница: 3🌾 → 1🥡" end, "Молоть", s.mill == nil, { type = "start_mill" })
+	end
+	if s.has.bakery then
+		line(function(x) return if x.bakery then `🥖 Пекарня: хлеб через {mmss(x.bakery.leftMs)}` else "🥖 Пекарня: 🥡 + 🥚 → 2🍞" end, "Печь", s.bakery == nil, { type = "start_bakery" })
+		if s.tray then
+			line(function(x) return if x.tray then `Противень: 🍞×{x.tray.bread}, остынет через {mmss(x.tray.leftMs)}` else "Противень пуст" end, "Забрать", true, { type = "take_tray" })
+		end
+	end
+	if s.has.kitchen then
+		line(function(x) return if x.kitchen then `🍳 Кухня: готовится, ещё {mmss(x.kitchen.leftMs)}` else "🍳 Кухня: выбери блюдо" end)
+		for _, r in s.recipes do
+			line(`{r.icon} {r.name}: {itemsText(r.needs)}`, if r.can then "Готовить" else r.why, r.can, { type = "cook", dish = r.id })
+		end
+	end
+end
+
+TAB_RENDER.log = function(_s, p)
+	if #logLines == 0 then
+		textLabel({ Text = "Пока ничего не случилось.", Size = UDim2.new(1, 0, 0, 22), Parent = p })
+	end
+	for i = #logLines, math.max(1, #logLines - 40), -1 do
+		textLabel({ Text = logLines[i], TextSize = 13, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = #logLines - i, Parent = p })
+	end
+end
+
+-- Только в Studio: проверка стыка с внешним миром без зверя (как вкладка «🌍 Внешний мир» в вебе).
+TAB_RENDER.world = function(s, p)
+	local acts = {
+		{ "coins", "+100 💰" }, { "skip", "⏩ +1 мин" }, { "offline", "🌙 Офлайн 1 ч" },
+		{ "trample", "Потоптал 30%" }, { "eat_green", "Съел зелёное" }, { "hail", "Град: −30% всем" },
+		{ "thief", "Вор: 2 из амбара" }, { "tray", "Стащил хлеб" }, { "manure", "Навоз" },
+		{ "stones", "Носит камни" }, { "chickens", "Гонял кур" },
+	}
+	local grid = make("Frame", { Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, LayoutOrder = 0, Parent = p }, {
+		make("UIGridLayout", { CellSize = UDim2.new(0.5, -4, 0, 30), CellPadding = UDim2.new(0, 4, 0, 4) }),
+	})
+	for _, a in acts do
+		button(a[2], true, function() send({ type = "debug", action = a[1] }) end, { TextSize = 13, BackgroundColor3 = Color3.fromRGB(120, 140, 200), Parent = grid })
+	end
+	textLabel({ Text = "Что видно снаружи:", Font = FONT, Size = UDim2.new(1, 0, 0, 22), LayoutOrder = 1, Parent = p })
+	for i, line in s.extra.objects do
+		textLabel({ Text = line, TextSize = 12, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = 1 + i, Parent = p })
+	end
+end
+
+-- ---------- Отрисовка ----------
+
+render = function()
+	local s = snap
+	if not s then
+		return
+	end
+	local xpPart = `{s.xp - s.xpFrom}/{s.xpTo - s.xpFrom}`
+	local con = if s.construction then `   🔨 {s.construction.name} {mmss(s.construction.leftMs)}` else ""
+	topText.Text = `💰 {s.coins}   ⭐ Ур. {s.level} ({xpPart})   📦 {s.used}/{s.cap}   ✨ {s.fertilizer}{con}`
+
+	local sig = tostring(narrowMode) .. (openTab or "-") .. (if openTab == "log" then tostring(#logLines) else "") .. signature(s)
+	if sig == lastSignature then
+		for _, l in liveLabels do
+			l.label.Text = l.fn(s)
+		end
+		return
+	end
+	lastSignature = sig
+	liveLabels = {}
+
+	-- Вкладки
+	for _, c in tabBar:GetChildren() do
+		if c:IsA("TextButton") then
+			c:Destroy()
+		end
+	end
+	local tabs = table.clone(TABS)
+	if s.extra.debug then
+		table.insert(tabs, { id = "world", title = "🌍", color = Color3.fromRGB(40, 170, 170) })
+	end
+	-- Все вкладки одной ширины и всегда влезают в ряд (раньше правые уходили за край).
+	local cellW = 1 / #tabs
+	for i, t in tabs do
+		local b = button(if narrowMode or t.id == "world" then string.split(t.title, " ")[1] else t.title, true, function() setTab(t.id) end, {
+			Size = UDim2.new(cellW, -4, 1, 0),
+			TextScaled = true,
+			LayoutOrder = i,
+			BackgroundColor3 = t.color,
+			Parent = tabBar,
+		})
+		b.Name = t.id
+		if openTab == t.id then
+			-- Открытая вкладка: белая рамка вместо тёмной.
+			local st = b:FindFirstChildOfClass("UIStroke") :: UIStroke
+			st.Color = Color3.new(1, 1, 1)
+			st.Thickness = 4
+		end
+		make("UITextSizeConstraint", { MaxTextSize = 15, Parent = b:FindFirstChild("Label") })
+		make("UIPadding", { PaddingLeft = UDim.new(0, 3), PaddingRight = UDim.new(0, 3), Parent = b })
+	end
+
+	-- Панель
+	for _, c in panel:GetChildren() do
+		if not (c:IsA("UIListLayout") or c:IsA("UIPadding") or c:IsA("UICorner") or c:IsA("UIStroke")) then
+			c:Destroy()
+		end
+	end
+	panel.Visible = openTab ~= nil
+	if openTab and TAB_RENDER[openTab] then
+		TAB_RENDER[openTab](s, panel)
+	end
+
+	-- Инструменты: выбор семян, удобрение, полить всё, собрать всё
+	for _, c in tools:GetChildren() do
+		if c:IsA("TextButton") then
+			c:Destroy()
+		end
+	end
+	for _, c in s.crops do
+		local chosen = s.extra.crop == c.id and s.extra.tool == "auto"
+		local seeds = s.extra.shop and s.extra.shop.seeds
+		local count = if c.cost == 0 then "∞" elseif seeds then "×" .. (seeds[c.id] or 0) else c.cost .. "💰"
+		local text = if c.unlocked then `{c.icon} {count}` else `🔒{c.level}`
+		button(text, c.unlocked, function() send({ type = "select_crop", crop = c.id }) end, {
+			Size = UDim2.new(0, 78, 0, 42),
+			TextSize = 14,
+			BackgroundColor3 = if chosen then COLORS.accent elseif c.unlocked then COLORS.wood else COLORS.buttonOff,
+			Parent = tools,
+		})
+	end
+	local fertOn = s.extra.tool == "fertilize"
+	button(`✨ {s.fertilizer}`, s.fertilizer > 0, function() send({ type = "tool", tool = if fertOn then "auto" else "fertilize" }) end, {
+		Size = UDim2.new(0, 64, 0, 42),
+		BackgroundColor3 = if fertOn then COLORS.accent elseif s.fertilizer > 0 then Color3.fromRGB(150, 110, 190) else COLORS.buttonOff,
+		Parent = tools,
+	})
+	button("💧 всё", true, function() send({ type = "water_all" }) end, { Size = UDim2.new(0, 70, 0, 42), BackgroundColor3 = Color3.fromRGB(70, 140, 210), Parent = tools })
+	button("🧺 всё", true, function() send({ type = "harvest_all" }) end, { Size = UDim2.new(0, 70, 0, 42), Parent = tools })
+end
+
+State.OnClientEvent:Connect(function(s)
+	snap = s
+	for _, line in s.log or {} do
+		table.insert(logLines, line)
+		if #logLines > 200 then
+			table.remove(logLines, 1)
+		end
+	end
+	local msg = s.hint or (if s.log and #s.log > 0 then s.log[#s.log] else nil)
+	if msg then
+		hint.Text = msg
+		hint.Visible = true
+		hintUntil = os.clock() + 3
+	elseif os.clock() > hintUntil then
+		hint.Visible = false
+	end
+	render()
+end)
+
+Open.OnClientEvent:Connect(function(tab: string)
+	openTab = tab
+	render()
+end)
+
+-- Первая подсказка, пока не пришёл снимок.
+hint.Text = "Кликни по грядке: пустая — посадить, растёт — полить, спелая — собрать"
+hint.Visible = true
+hintUntil = os.clock() + 8
+]]></string>
+          </Properties>
+        </Item>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="Workspace" referent="26">
+    <Properties>
+      <string name="Name">Workspace</string>
+      <bool name="NeedsPivotMigration">false</bool>
+    </Properties>
+    <Item class="Part" referent="27">
+      <Properties>
+        <string name="Name">Baseplate</string>
+        <bool name="Anchored">true</bool>
+        <token name="BottomSurface">0</token>
+        <Color3uint8 name="Color3uint8">6075200</Color3uint8>
+        <bool name="Locked">true</bool>
+        <token name="Material">256</token>
+        <Vector3 name="Position">
+          <X>0</X>
+          <Y>-1.1</Y>
+          <Z>0</Z>
+        </Vector3>
+        <Vector3 name="size">
+          <X>520</X>
+          <Y>1</Y>
+          <Z>400</Z>
+        </Vector3>
+        <token name="TopSurface">3</token>
+      </Properties>
+    </Item>
+    <Item class="SpawnLocation" referent="28">
+      <Properties>
+        <string name="Name">SpawnLocation</string>
+        <bool name="Anchored">true</bool>
+        <Color3uint8 name="Color3uint8">14270348</Color3uint8>
+        <int name="Duration">0</int>
+        <Vector3 name="Position">
+          <X>0</X>
+          <Y>-0.4</Y>
+          <Z>0</Z>
+        </Vector3>
+        <Vector3 name="size">
+          <X>12</X>
+          <Y>1</Y>
+          <Z>12</Z>
+        </Vector3>
+        <token name="TopSurface">0</token>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>
