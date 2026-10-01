@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One Beast — версии</title>
+<style>
+  :root { --bg: #f6f1e6; --card: #fffdf7; --text: #2b2a26; --muted: #6f6a5e; --line: #e2d9c4; --accent: #3f7d4a; --warn: #fff4e0; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #1b1f1c; --card: #242a26; --text: #eef0ea; --muted: #a8b0a6; --line: #3a443d; --accent: #8fcf8f; --warn: #3a3222; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .muted { color: var(--muted); }
+  .note { background: var(--warn); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 16px 0; font-size: 14px; }
+  .v { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 12px 0; }
+  .v h2 { font-size: 18px; margin: 0 0 2px; }
+  .v h2 a { color: var(--accent); text-decoration: none; }
+  .v h2 a:hover { text-decoration: underline; }
+  .tag { display: inline-block; font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; margin-left: 6px; color: var(--muted); }
+  .v p { margin: 6px 0 0; }
+  .lost { opacity: .65; }
+</style>
+</head>
+<body>
+<main>
+  <h1>One Beast — версии прототипа</h1>
+  <div class="muted">Сверху новые. Каждая версия — отдельная игра со своей ссылкой.</div>
+
+  <div class="note">
+    Все версии на этом сайте делят одно сохранение в браузере. Новая версия переносит старое сохранение,
+    а старая версия может его не прочитать и начать нового зверя. Чтобы сравнивать, открывай старые версии в окне инкогнито.
+  </div>
+
+  <!-- Новые версии добавляются сюда, сверху. -->
+  <div class="v">
+    <h2><a href="v2.30/">v2.30</a><span class="tag">1 окт, 14:34</span><span class="tag">новая</span></h2>
+    <p>«Кем растёт»: роль зверя складывается из того, чем он занимается. Команда «🛡 Дозор». До этого (шаги 16–29): 📺 Арена ботов, журнал воспитателя, «Характер словами» и лестница привычек, шанс повторения после реакции, понос отдельно от «объелся», зверь приносит игрушку, история тела, переключатель силы обучения, камера на телефоне, «терпит у грядки», подсказки «Первые шаги».</p>
+  </div>
+
+  <div class="v lost">
+    <h2>v2.29 и v2.25<span class="tag">1 окт, 13:08 и 12:03</span><span class="tag">не сохранились</span></h2>
+    <p>Тогда сборка перезаписывалась на месте. Всё, что в них было, вошло в v2.30.</p>
+  </div>
+
+  <div class="v">
+    <h2><a href="v2.15/">v2.15</a><span class="tag">1 окт, 11:18</span><span class="tag">ссылка для друзей</span></h2>
+    <p>Ферма, набеги гоблинов, 8 видов зверей, бот-сосед, ярмарка, гильдия, паук, любимая игрушка, кухня, «пока тебя не было». Эта же сборка открывается по <a href="../">главной ссылке</a>.</p>
+  </div>
+
+  <div class="v">
+    <h2><a href="v1/">v1</a><span class="tag">1 окт, ночь</span></h2>
+    <p>Первый прототип: зверь сам выбирает действие, реакции меняют привычки, грядка, камни, дневник.</p>
+  </div>
+</main>
+</body>
+</html>
