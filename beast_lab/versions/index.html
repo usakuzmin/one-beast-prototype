@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Лаборатория зверя — версии</title>
+<style>
+  :root { --bg: #f6f1e6; --card: #fffdf7; --text: #2b2a26; --muted: #6f6a5e; --line: #e2d9c4; --accent: #3f7d4a; --warn: #fff4e0; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #1b1f1c; --card: #242a26; --text: #eef0ea; --muted: #a8b0a6; --line: #3a443d; --accent: #8fcf8f; --warn: #3a3222; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .muted { color: var(--muted); }
+  .note { background: var(--warn); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 16px 0; font-size: 14px; }
+  .v { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 12px 0; }
+  .v h2 { font-size: 18px; margin: 0 0 2px; }
+  .v h2 a { color: var(--accent); text-decoration: none; }
+  .v h2 a:hover { text-decoration: underline; }
+  .tag { display: inline-block; font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; margin-left: 6px; color: var(--muted); }
+  .v p { margin: 6px 0 0; }
+  .lost { opacity: .65; }
+</style>
+</head>
+<body>
+<main>
+  <h1>One Beast — лаборатория зверя</h1>
+  <div class="muted">Зверь и воспитание отдельным блоком, без фермы. Сверху новые. <a href="../../versions/">Версии полного прототипа</a></div>
+
+  <div class="note">
+    Сохранение лаборатории в браузере своё и не мешает ни полному прототипу, ни ферме.
+  </div>
+
+  <!-- Новые версии добавляются сюда, сверху. -->
+  <div class="v">
+    <h2><a href="v0.1/">v0.1</a><span class="tag">1 окт, 16:15</span><span class="tag">новая</span></h2>
+    <p>Зверь без фермы: 8 видов, реакции и шанс повторения, лестница привычек, «Характер словами», живот (расстройство, понос, объелся, рвота), вкусовая память, рост и тело, эмоции на мордочке, панель «Почему он так решил». Вместо фермы стенд с объектами с метками.</p>
+  </div>
+</main>
+</body>
+</html>
