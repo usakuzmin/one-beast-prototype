@@ -7616,7 +7616,10 @@ end
 function DayNight.step(dt: number)
 	t += dt
 	local clock = clockAt(t % CYCLE)
-	Lighting.ClockTime = clock
+	-- Свойство света уходит по сети всем: пишем, только когда время заметно сдвинулось.
+	if math.abs(Lighting.ClockTime - clock) > 0.02 then
+		Lighting.ClockTime = clock
+	end
 	-- Ночью лунный голубоватый свет, а не чёрная темнота: детям должно быть видно, куда идти.
 	local night = DayNight.isNight()
 	local ambient = if night then Color3.fromRGB(70, 80, 120) else Color3.fromRGB(77, 77, 82)
